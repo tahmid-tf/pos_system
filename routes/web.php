@@ -30,7 +30,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'role:Admin'])->group(function () {
     Route::get('/admin', function () {
-        return "This is an admin route";
+        return view('layouts.admin');
     })->name('admin');
 });
 
