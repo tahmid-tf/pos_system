@@ -3,6 +3,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class CategorySeeder extends Seeder
 {
@@ -11,10 +12,10 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        Category::insert([
-            ['name' => 'Electronics'],
-            ['name' => 'Clothing'],
-            ['name' => 'Food'],
-        ]);
+        DB::table('categories')->delete();
+
+        Category::create(['name' => 'Electronics']);
+        Category::create(['name' => 'Clothing']);
+        Category::create(['name' => 'Food']);
     }
 }
