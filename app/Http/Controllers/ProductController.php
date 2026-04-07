@@ -8,8 +8,14 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        if ($request->ajax()) {
+            $products = Product::with('category')->latest()->get();
+
+            return response()->json($products);
+        }
+
         $categories = Category::all();
         return view('admin.products.index', compact('categories'));
     }

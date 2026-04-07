@@ -37,8 +37,8 @@
                     + Add Product
                 </button>
             </div>
-            <div class="card-body">
-                <table class="table table-bordered" id="productTable">
+            <div class="card-body" id="productTableWrapper">
+                <table class="table table-striped" id="productTable">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -67,7 +67,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Product</h5>
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
 
                     <div class="modal-body row">
@@ -132,132 +132,219 @@
 
 @section('scripts')
     <script>
-        $(document).ready(function() {
+        document.addEventListener('DOMContentLoaded', function() {
+            const productTableWrapper = document.getElementById('productTableWrapper');
+            const productForm = document.getElementById('productForm');
+            const productModalElement = document.getElementById('productModal');
+            const productModal = new bootstrap.Modal(productModalElement);
+            const preview = document.getElementById('preview');
+            const productId = document.getElementById('product_id');
+            const csrfToken = '{{ csrf_token() }}';
+            let dataTableInstance = null;
 
-            let table = $('#productTable').DataTable({
-                processing: true,
-                serverSide: false,
-                ajax: "{{ route('products.index') }}",
-                columns: [{
-                        data: 'id'
-                    },
-                    {
-                        data: 'image',
-                        render: function(data) {
-                            return data ?
-                                `<img src="/storage/${data}" width="50">` :
-                                'No Image';
-                        }
-                    },
-                    {
-                        data: 'name'
-                    },
-                    {
-                        data: 'sku'
-                    },
-                    {
-                        data: 'category.name'
-                    },
-                    {
-                        data: 'price'
-                    },
-                    {
-                        data: 'stock'
-                    },
-                    {
-                        data: 'status',
-                        render: data => data ? 'Active' : 'Inactive'
-                    },
-                    {
-                        data: 'id',
-                        render: function(id) {
-                            return `
-                        <button class="btn btn-sm btn-warning editBtn" data-id="${id}">Edit</button>
-                        <button class="btn btn-sm btn-danger deleteBtn" data-id="${id}">Delete</button>
-                    `;
-                        }
+            const routes = {
+                index: '{{ route('products.index') }}',
+                store: '{{ route('products.store') }}',
+                edit: '{{ url('/products/edit') }}',
+                update: '{{ url('/products/update') }}',
+                destroy: '{{ url('/products/delete') }}'
+            };
+
+            function getTableMarkup(products) {
+                return `
+                    <table class="table table-striped" id="productTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>SKU</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th width="120">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${products.map((product) => `
+                                <tr>
+                                    <td>${product.id}</td>
+                                    <td>${product.image ? `<img src="/storage/${product.image}" width="50" class="img-fluid rounded">` : 'No Image'}</td>
+                                    <td>${product.name ?? ''}</td>
+                                    <td>${product.sku ?? ''}</td>
+                                    <td>${product.category?.name ?? ''}</td>
+                                    <td>${product.price ?? ''}</td>
+                                    <td>${product.stock ?? ''}</td>
+                                    <td>${product.status ? 'Active' : 'Inactive'}</td>
+                                    <td>
+                                        <button class="btn btn-datatable btn-icon btn-transparent-dark me-2 editBtn" data-id="${product.id}" type="button">
+                                            <i data-feather="edit"></i>
+                                        </button>
+                                        <button class="btn btn-datatable btn-icon btn-transparent-dark deleteBtn" data-id="${product.id}" type="button">
+                                            <i data-feather="trash-2"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            function renderTable(products) {
+                if (dataTableInstance) {
+                    dataTableInstance.destroy();
+                    dataTableInstance = null;
+                }
+
+                productTableWrapper.innerHTML = getTableMarkup(products);
+
+                const productTable = document.getElementById('productTable');
+                dataTableInstance = new simpleDatatables.DataTable(productTable);
+                feather.replace();
+            }
+
+            async function loadProducts() {
+                const response = await fetch(routes.index, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
                     }
-                ]
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load products');
+                }
+
+                const products = await response.json();
+                renderTable(products);
+            }
+
+            function resetForm() {
+                productForm.reset();
+                productId.value = '';
+                preview.src = '';
+                preview.classList.add('d-none');
+            }
+
+            document.getElementById('addProductBtn').addEventListener('click', function() {
+                resetForm();
+                productModal.show();
             });
 
-            $('#addProductBtn').click(function() {
-                $('#productForm')[0].reset();
-                $('#product_id').val('');
-                $('#preview').addClass('d-none');
-                $('#productModal').modal('show');
-            });
-
-            $('#productForm').submit(function(e) {
+            productForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
-                let id = $('#product_id').val();
-                let url = id ?
-                    `/products/update/${id}` :
-                    `/products/store`;
+                const id = productId.value;
+                const url = id ? `${routes.update}/${id}` : routes.store;
+                const formData = new FormData(productForm);
 
-                let formData = new FormData(this);
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    });
 
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function() {
-                        $('#productModal').modal('hide');
-                        table.ajax.reload();
-                        Swal.fire('Success', 'Saved successfully', 'success');
-                    }
-                });
-            });
-
-            $(document).on('click', '.editBtn', function() {
-                let id = $(this).data('id');
-
-                $.get(`/products/edit/${id}`, function(data) {
-                    $('#product_id').val(data.id);
-                    $('#name').val(data.name);
-                    $('#sku').val(data.sku);
-                    $('#category_id').val(data.category_id);
-                    $('#price').val(data.price);
-                    $('#cost_price').val(data.cost_price);
-                    $('#stock').val(data.stock);
-                    $('#status').val(data.status);
-
-                    if (data.image) {
-                        $('#preview')
-                            .attr('src', '/storage/' + data.image)
-                            .removeClass('d-none');
+                    if (!response.ok) {
+                        throw new Error('Failed to save product');
                     }
 
-                    $('#productModal').modal('show');
-                });
+                    productModal.hide();
+                    await loadProducts();
+                    Swal.fire('Success', 'Saved successfully', 'success');
+                } catch (error) {
+                    Swal.fire('Error', 'Something went wrong', 'error');
+                }
             });
 
-            $(document).on('click', '.deleteBtn', function() {
-                let id = $(this).data('id');
+            productTableWrapper.addEventListener('click', async function(e) {
+                const editButton = e.target.closest('.editBtn');
+                const deleteButton = e.target.closest('.deleteBtn');
 
-                Swal.fire({
-                    title: 'Delete?',
-                    icon: 'warning',
-                    showCancelButton: true
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: `/products/delete/${id}`,
-                            type: 'DELETE',
-                            data: {
-                                _token: '{{ csrf_token() }}'
-                            },
-                            success: function() {
-                                table.ajax.reload();
-                                Swal.fire('Deleted!', '', 'success');
+                if (editButton) {
+                    const id = editButton.dataset.id;
+
+                    try {
+                        const response = await fetch(`${routes.edit}/${id}`, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
                             }
                         });
+
+                        if (!response.ok) {
+                            throw new Error('Failed to load product');
+                        }
+
+                        const data = await response.json();
+
+                        productId.value = data.id;
+                        document.getElementById('name').value = data.name ?? '';
+                        document.getElementById('sku').value = data.sku ?? '';
+                        document.getElementById('category_id').value = data.category_id ?? '';
+                        document.getElementById('price').value = data.price ?? '';
+                        document.getElementById('cost_price').value = data.cost_price ?? '';
+                        document.getElementById('stock').value = data.stock ?? '';
+                        document.getElementById('status').value = data.status ?? 1;
+
+                        if (data.image) {
+                            preview.src = `/storage/${data.image}`;
+                            preview.classList.remove('d-none');
+                        } else {
+                            preview.src = '';
+                            preview.classList.add('d-none');
+                        }
+
+                        productModal.show();
+                    } catch (error) {
+                        Swal.fire('Error', 'Failed to load product', 'error');
                     }
-                });
+                }
+
+                if (deleteButton) {
+                    const id = deleteButton.dataset.id;
+
+                    const result = await Swal.fire({
+                        title: 'Delete?',
+                        icon: 'warning',
+                        showCancelButton: true
+                    });
+
+                    if (!result.isConfirmed) {
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`${routes.destroy}/${id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Failed to delete product');
+                        }
+
+                        await loadProducts();
+                        Swal.fire('Deleted!', '', 'success');
+                    } catch (error) {
+                        Swal.fire('Error', 'Failed to delete product', 'error');
+                    }
+                }
             });
 
+            loadProducts().catch(() => {
+                Swal.fire('Error', 'Failed to load products', 'error');
+            });
         });
     </script>
 @endsection
