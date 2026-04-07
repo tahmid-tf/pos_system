@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -27,10 +28,7 @@ class ProductController extends Controller
 
         // Image Upload
         if ($request->hasFile('image')) {
-            $image     = $request->file('image');
-            $imageName = time() . '.' . $image->extension();
-            $image->move(public_path('uploads/products'), $imageName);
-            $data['image'] = $imageName;
+            $data['image'] = $request->file('image')->store('products', 'public');
         }
 
         Product::create($data);
@@ -62,14 +60,11 @@ class ProductController extends Controller
         if ($request->hasFile('image')) {
 
             // delete old image
-            if ($product->image && file_exists(public_path('uploads/products/' . $product->image))) {
-                unlink(public_path('uploads/products/' . $product->image));
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
+                Storage::disk('public')->delete($product->image);
             }
 
-            $image     = $request->file('image');
-            $imageName = time() . '.' . $image->extension();
-            $image->move(public_path('uploads/products'), $imageName);
-            $data['image'] = $imageName;
+            $data['image'] = $request->file('image')->store('products', 'public');
         }
 
         $product->update($data);
@@ -82,8 +77,8 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
         // delete image
-        if ($product->image && file_exists(public_path('uploads/products/' . $product->image))) {
-            unlink(public_path('uploads/products/' . $product->image));
+        if ($product->image && Storage::disk('public')->exists($product->image)) {
+            Storage::disk('public')->delete($product->image);
         }
 
         $product->delete();
