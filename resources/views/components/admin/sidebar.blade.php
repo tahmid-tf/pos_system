@@ -16,3 +16,17 @@
 
       </nav>
   </div>
+
+
+  <!-- Sidenav Heading (Addons)-->
+  <div class="sidenav-menu-heading">Products</div>
+  <!-- Sidenav Link (Charts)-->
+  <a class="nav-link" href="{{ route('products.index') }}">
+      <div class="nav-link-icon"><i data-feather="bar-chart"></i></div>
+      Products
+  </a>
+  <!-- Sidenav Link (Tables)-->
+  <a class="nav-link" href="{{ route('categories.index') }}">
+      <div class="nav-link-icon"><i data-feather="filter"></i></div>
+      Categories
+  </a>
