@@ -168,25 +168,25 @@
                         </thead>
                         <tbody>
                             ${products.map((product) => `
-                                <tr>
-                                    <td>${product.id}</td>
-                                    <td>${product.image ? `<img src="/storage/${product.image}" width="50" class="img-fluid rounded">` : 'No Image'}</td>
-                                    <td>${product.name ?? ''}</td>
-                                    <td>${product.sku ?? ''}</td>
-                                    <td>${product.category?.name ?? ''}</td>
-                                    <td>${product.price ?? ''}</td>
-                                    <td>${product.stock ?? ''}</td>
-                                    <td>${product.status ? 'Active' : 'Inactive'}</td>
-                                    <td>
-                                        <button class="btn btn-datatable btn-icon btn-transparent-dark me-2 editBtn" data-id="${product.id}" type="button">
-                                            <i data-feather="edit"></i>
-                                        </button>
-                                        <button class="btn btn-datatable btn-icon btn-transparent-dark deleteBtn" data-id="${product.id}" type="button">
-                                            <i data-feather="trash-2"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            `).join('')}
+                                        <tr>
+                                            <td>${product.id}</td>
+                                            <td>${product.image ? `<img src="/storage/${product.image}" width="50" class="img-fluid rounded">` : 'No Image'}</td>
+                                            <td>${product.name ?? ''}</td>
+                                            <td>${product.sku ?? ''}</td>
+                                            <td>${product.category?.name ?? ''}</td>
+                                            <td>${product.price ?? ''}</td>
+                                            <td>${product.stock ?? ''}</td>
+                                            <td>${product.status ? 'Active' : 'Inactive'}</td>
+                                            <td>
+                                                <button class="btn btn-datatable btn-icon btn-transparent-dark me-2 editBtn" data-id="${product.id}" type="button">
+                                                    <i data-feather="edit"></i>
+                                                </button>
+                                                <button class="btn btn-datatable btn-icon btn-transparent-dark deleteBtn" data-id="${product.id}" type="button">
+                                                    <i data-feather="trash-2"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
                         </tbody>
                     </table>
                 `;
@@ -257,9 +257,23 @@
 
                     productModal.hide();
                     await loadProducts();
-                    Swal.fire('Success', 'Saved successfully', 'success');
+                    Swal.fire({
+                        title: 'Success',
+                        text: 'Saved successfully',
+                        icon: 'success',
+                        showConfirmButton: false,
+                        timer: 1500 // auto-close after 1.5 seconds
+                    });
+
                 } catch (error) {
-                    Swal.fire('Error', 'Something went wrong', 'error');
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Something went wrong',
+                        icon: 'error',
+                        showConfirmButton: false,
+                        timer: 2000 // closes after 2 seconds
+                    });
+
                 }
             });
 
