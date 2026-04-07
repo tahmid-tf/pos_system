@@ -12,5 +12,7 @@
   <div class="collapse" id="collapseDashboards" data-bs-parent="#accordionSidenav">
       <nav class="sidenav-menu-nested nav accordion" id="accordionSidenavPages">
           <a class="nav-link" href="{{ route('products.index') }}">Products</a>
+          <a class="nav-link" href="{{ route('categories.index') }}">Categories</a>
+
       </nav>
   </div>
