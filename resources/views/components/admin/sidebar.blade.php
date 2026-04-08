@@ -1,3 +1,9 @@
+<div class="sidenav-menu-heading">Core</div>
+<a class="nav-link" href="">
+    <div class="nav-link-icon"><i data-feather="package"></i></div>
+    Dashboard
+</a>
+
 <div class="sidenav-menu-heading">Catalog</div>
 <a class="nav-link" href="{{ route('products.index') }}">
     <div class="nav-link-icon"><i data-feather="package"></i></div>
