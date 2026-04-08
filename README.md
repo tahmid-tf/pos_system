@@ -4,6 +4,12 @@
 
 A professional Laravel-based Point of Sale and business management system for retail operations. The application combines POS checkout, inventory control, procurement, customer management, reporting, notifications, audit logging, and an admin dashboard in a single back-office workflow.
 
+The default admin account from the seeder is:
+
+- Email: `tahmid.tf1@gmail.com`
+- Password: `12345678`
+
+
 ## Overview
 
 This project is built for day-to-day store operations. It supports:
@@ -176,17 +182,6 @@ Admins can review logs from the audit log screen.
 - Vite for frontend assets
 
 ## Authentication and Roles
-
-Roles are seeded with:
-
-- `Admin`
-- `Manager`
-- `Cashier`
-
-The default admin account from the seeder is:
-
-- Email: `tahmid.tf1@gmail.com`
-- Password: `12345678`
 
 You should change this password immediately in any real deployment.
 
