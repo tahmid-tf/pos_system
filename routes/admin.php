@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
@@ -17,15 +19,37 @@ Route::middleware(['auth'])->group(function () {
         ->name('inventory.addStock');
     Route::post('/inventory/deduct-stock', [InventoryController::class, 'deductStock'])
         ->name('inventory.deductStock');
+    Route::get('/inventory/stock-levels', [InventoryController::class, 'stockLevels'])
+        ->name('inventory.stockLevels');
+    Route::get('/inventory/movements', [InventoryController::class, 'movements'])
+        ->name('inventory.movements');
+    Route::get('/inventory/alerts', [InventoryController::class, 'alerts'])
+        ->name('inventory.alerts');
+    Route::post('/inventory/products/{product}/toggle-lock', [InventoryController::class, 'toggleLock'])
+        ->name('inventory.toggleLock');
+    Route::post('/inventory/products/{product}/threshold', [InventoryController::class, 'updateThreshold'])
+        ->name('inventory.threshold');
 
-});
+    Route::prefix('suppliers')->group(function () {
+        Route::get('/', [SupplierController::class, 'index'])->name('suppliers.index');
+        Route::post('/store', [SupplierController::class, 'store'])->name('suppliers.store');
+        Route::post('/update/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
+        Route::delete('/delete/{supplier}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
+    });
 
-Route::prefix('categories')->group(function () {
+    Route::prefix('purchase-orders')->group(function () {
+        Route::get('/', [PurchaseOrderController::class, 'index'])->name('purchaseOrders.index');
+        Route::post('/store', [PurchaseOrderController::class, 'store'])->name('purchaseOrders.store');
+        Route::post('/receive/{purchaseOrder}', [PurchaseOrderController::class, 'receive'])->name('purchaseOrders.receive');
+        Route::post('/cancel/{purchaseOrder}', [PurchaseOrderController::class, 'cancel'])->name('purchaseOrders.cancel');
+    });
 
-    Route::get('/', [CategoryController::class, 'index'])->name('categories.index');
-    Route::post('/store', [CategoryController::class, 'store'])->name('categories.store');
-    Route::get('/edit/{id}', [CategoryController::class, 'edit'])->name('categories.edit');
-    Route::post('/update/{id}', [CategoryController::class, 'update'])->name('categories.update');
-    Route::delete('/delete/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+    Route::prefix('categories')->group(function () {
+        Route::get('/', [CategoryController::class, 'index'])->name('categories.index');
+        Route::post('/store', [CategoryController::class, 'store'])->name('categories.store');
+        Route::get('/edit/{id}', [CategoryController::class, 'edit'])->name('categories.edit');
+        Route::post('/update/{id}', [CategoryController::class, 'update'])->name('categories.update');
+        Route::delete('/delete/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+    });
 
 });

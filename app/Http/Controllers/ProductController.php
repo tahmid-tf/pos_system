@@ -30,7 +30,7 @@ class ProductController extends Controller
             'sku'         => 'required|unique:products,sku',
             'category_id' => 'required',
             'price'       => 'required|numeric',
-            'stock'       => 'required|integer',
+            'stock'       => 'required|integer|min:0',
         ]);
 
         $data = $request->all();
@@ -79,7 +79,7 @@ class ProductController extends Controller
             'sku'         => 'required|unique:products,sku,' . $id,
             'category_id' => 'required',
             'price'       => 'required|numeric',
-            'stock'       => 'required|integer',
+            'stock'       => 'required|integer|min:0',
         ]);
 
         $data = $request->all();

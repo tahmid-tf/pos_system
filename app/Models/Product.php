@@ -19,8 +19,18 @@ class Product extends Model
         return $this->hasOne(Stock::class);
     }
 
+    public function stockRecord()
+    {
+        return $this->hasOne(Stock::class);
+    }
+
     public function movements()
     {
         return $this->hasMany(StockMovement::class);
+    }
+
+    public function purchaseOrderItems()
+    {
+        return $this->hasMany(PurchaseOrderItem::class);
     }
 }
