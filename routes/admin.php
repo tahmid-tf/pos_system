@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SalesController;
 use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +43,16 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/store', [PurchaseOrderController::class, 'store'])->name('purchaseOrders.store');
         Route::post('/receive/{purchaseOrder}', [PurchaseOrderController::class, 'receive'])->name('purchaseOrders.receive');
         Route::post('/cancel/{purchaseOrder}', [PurchaseOrderController::class, 'cancel'])->name('purchaseOrders.cancel');
+    });
+
+    Route::prefix('sales')->group(function () {
+        Route::get('/', [SalesController::class, 'index'])->name('sales.index');
+        Route::get('/history', [SalesController::class, 'history'])->name('sales.history');
+        Route::post('/store', [SalesController::class, 'store'])->name('sales.store');
+        Route::post('/customers/store', [SalesController::class, 'storeCustomer'])->name('sales.customers.store');
+        Route::post('/promotions/store', [SalesController::class, 'storePromotion'])->name('sales.promotions.store');
+        Route::get('/{sale}', [SalesController::class, 'show'])->name('sales.show');
+        Route::get('/{sale}/receipt', [SalesController::class, 'receipt'])->name('sales.receipt');
     });
 
     Route::prefix('categories')->group(function () {

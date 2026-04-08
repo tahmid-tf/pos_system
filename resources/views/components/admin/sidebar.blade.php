@@ -22,6 +22,12 @@
     Low Stock Alerts
 </a>
 
+<div class="sidenav-menu-heading">Sales</div>
+<a class="nav-link" href="{{ route('sales.index') }}">
+    <div class="nav-link-icon"><i data-feather="shopping-cart"></i></div>
+    POS Terminal
+</a>
+
 <div class="sidenav-menu-heading">Procurement</div>
 <a class="nav-link" href="{{ route('suppliers.index') }}">
     <div class="nav-link-icon"><i data-feather="truck"></i></div>
