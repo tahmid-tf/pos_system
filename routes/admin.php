@@ -15,6 +15,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/inventory/add-stock', [InventoryController::class, 'addStock'])
         ->name('inventory.addStock');
+    Route::post('/inventory/deduct-stock', [InventoryController::class, 'deductStock'])
+        ->name('inventory.deductStock');
 
 });
 

@@ -49,7 +49,7 @@
                             <th>Price</th>
                             <th>Stock</th>
                             <th>Status</th>
-                            <th width="120">Action</th>
+                            <th width="180">Action</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -128,10 +128,101 @@
             </form>
         </div>
     </div>
+
+    <div class="modal fade" id="stockModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="stockModalTitle">Add Stock</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" id="stock_product_id">
+                    <input type="hidden" id="stock_action" value="add">
+
+                    <input type="number" id="quantity" class="form-control mb-2" placeholder="Quantity">
+
+                    <input type="text" id="reference" class="form-control mb-2" placeholder="Reference (optional)">
+
+                    <textarea id="note" class="form-control" placeholder="Note"></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="saveStockBtn" type="button">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
     <script>
+        document.addEventListener('click', function(e) {
+            const addStockButton = e.target.closest('.add-stock-btn');
+            const deductStockButton = e.target.closest('.deduct-stock-btn');
+
+            if (addStockButton) {
+                let id = addStockButton.dataset.id;
+                document.getElementById('stock_product_id').value = id;
+                document.getElementById('stock_action').value = 'add';
+                document.getElementById('stockModalTitle').textContent = 'Add Stock';
+                document.getElementById('quantity').value = '';
+                document.getElementById('reference').value = '';
+                document.getElementById('note').value = '';
+
+                let modal = new bootstrap.Modal(document.getElementById('stockModal'));
+                modal.show();
+            }
+
+            if (deductStockButton) {
+                let id = deductStockButton.dataset.id;
+                document.getElementById('stock_product_id').value = id;
+                document.getElementById('stock_action').value = 'deduct';
+                document.getElementById('stockModalTitle').textContent = 'Deduct Stock';
+                document.getElementById('quantity').value = '';
+                document.getElementById('reference').value = '';
+                document.getElementById('note').value = '';
+
+                let modal = new bootstrap.Modal(document.getElementById('stockModal'));
+                modal.show();
+            }
+
+            if (e.target.id === 'saveStockBtn') {
+                const action = document.getElementById('stock_action').value;
+                const route = action === 'deduct' ?
+                    "{{ route('inventory.deductStock') }}" :
+                    "{{ route('inventory.addStock') }}";
+
+                fetch(route, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                        },
+                        body: JSON.stringify({
+                            product_id: document.getElementById('stock_product_id').value,
+                            quantity: document.getElementById('quantity').value,
+                            reference: document.getElementById('reference').value,
+                            note: document.getElementById('note').value
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(async data => {
+                        if (data.success) {
+                            bootstrap.Modal.getInstance(document.getElementById('stockModal'))?.hide();
+                            document.getElementById('quantity').value = '';
+                            document.getElementById('reference').value = '';
+                            document.getElementById('note').value = '';
+                            document.dispatchEvent(new CustomEvent('stock:updated'));
+                            Swal.fire('Success', data.message || 'Stock updated successfully', 'success');
+                        } else {
+                            Swal.fire('Error', data.message || 'Failed to add stock', 'error');
+                        }
+                    });
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
             const productTableWrapper = document.getElementById('productTableWrapper');
             const productForm = document.getElementById('productForm');
@@ -163,30 +254,36 @@
                                 <th>Price</th>
                                 <th>Stock</th>
                                 <th>Status</th>
-                                <th width="120">Action</th>
+                                <th width="180">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${products.map((product) => `
-                                        <tr>
-                                            <td>${product.id}</td>
-                                            <td>${product.image ? `<img src="/storage/${product.image}" width="50" class="img-fluid rounded">` : 'No Image'}</td>
-                                            <td>${product.name ?? ''}</td>
-                                            <td>${product.sku ?? ''}</td>
-                                            <td>${product.category?.name ?? ''}</td>
-                                            <td>${product.price ?? ''}</td>
-                                            <td>${product.stock ?? ''}</td>
-                                            <td>${product.status ? 'Active' : 'Inactive'}</td>
-                                            <td>
-                                                <button class="btn btn-datatable btn-icon btn-transparent-dark me-2 editBtn" data-id="${product.id}" type="button">
-                                                    <i data-feather="edit"></i>
-                                                </button>
-                                                <button class="btn btn-datatable btn-icon btn-transparent-dark deleteBtn" data-id="${product.id}" type="button">
-                                                    <i data-feather="trash-2"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    `).join('')}
+                                    <tr>
+                                        <td>${product.id}</td>
+                                        <td>${product.image ? `<img src="/storage/${product.image}" width="50" class="img-fluid rounded">` : 'No Image'}</td>
+                                        <td>${product.name ?? ''}</td>
+                                        <td>${product.sku ?? ''}</td>
+                                        <td>${product.category?.name ?? ''}</td>
+                                        <td>${product.price ?? ''}</td>
+                                        <td>${product.stock ?? ''}</td>
+                                        <td>${product.status ? 'Active' : 'Inactive'}</td>
+                                        <td>
+                                            <button class="btn btn-datatable btn-icon btn-transparent-dark me-2 editBtn" data-id="${product.id}" type="button">
+                                                <i data-feather="edit"></i>
+                                            </button>
+                                            <button class="btn btn-datatable btn-icon btn-transparent-dark deleteBtn" data-id="${product.id}" type="button">
+                                                <i data-feather="trash-2"></i>
+                                            </button>
+                                            <button class="btn btn-datatable btn-icon btn-transparent-dark me-2 add-stock-btn" data-id="${product.id}" type="button" title="Add Stock">
+                                                <i data-feather="plus-circle"></i>
+                                            </button>
+                                            <button class="btn btn-datatable btn-icon btn-transparent-dark deduct-stock-btn" data-id="${product.id}" type="button" title="Deduct Stock">
+                                                <i data-feather="minus-circle"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
                         </tbody>
                     </table>
                 `;
@@ -358,6 +455,12 @@
 
             loadProducts().catch(() => {
                 Swal.fire('Error', 'Failed to load products', 'error');
+            });
+
+            document.addEventListener('stock:updated', function() {
+                loadProducts().catch(() => {
+                    Swal.fire('Error', 'Failed to refresh products', 'error');
+                });
             });
         });
     </script>
