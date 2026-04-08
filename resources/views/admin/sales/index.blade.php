@@ -93,7 +93,7 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-bordered align-middle mb-0">
+                            <table class="table table-bordered align-middle mb-0" data-mobile-table>
                                 <thead>
                                     <tr>
                                         <th>Invoice</th>
@@ -145,7 +145,7 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive mb-3">
-                            <table class="table table-sm align-middle">
+                            <table class="table table-sm align-middle" data-mobile-table>
                                 <thead>
                                     <tr>
                                         <th>Item</th>
@@ -473,6 +473,7 @@
                 }
 
                 $('#cartTableBody').html(html);
+                window.adminTableUtils?.enhanceTables(document.body);
                 feather.replace();
                 updateSummary();
             }
@@ -587,6 +588,7 @@
                 });
 
                 $('#historyTableBody').html(html || '<tr><td colspan="8" class="text-center text-muted py-4">No transactions found</td></tr>');
+                window.adminTableUtils?.enhanceTables(document.body);
                 feather.replace();
             }
 

@@ -88,7 +88,7 @@
                             <button type="button" class="btn btn-sm btn-outline-primary" id="addPoItemRow">+ Add Item</button>
                         </div>
                         <div class="table-responsive">
-                            <table class="table table-bordered" id="poItemsTable">
+                            <table class="table table-bordered" id="poItemsTable" data-mobile-table>
                                 <thead>
                                     <tr>
                                         <th>Product</th>
@@ -111,7 +111,7 @@
             <div class="card-header">Purchase Order List</div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered align-middle mb-0">
+                    <table class="table table-bordered align-middle mb-0" data-mobile-table>
                         <thead>
                             <tr>
                                 <th>PO Number</th>
@@ -135,7 +135,7 @@
             <div class="card-header">Recent Supplier Payments</div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered align-middle mb-0">
+                    <table class="table table-bordered align-middle mb-0" data-mobile-table>
                         <thead>
                             <tr>
                                 <th>Supplier</th>
@@ -343,6 +343,7 @@
 
                 $('#purchaseOrderTableBody').html(html || '<tr><td colspan="9" class="text-center text-muted py-4">No purchase orders found</td></tr>');
                 updateStats();
+                window.adminTableUtils?.enhanceTables(document.body);
                 feather.replace();
             }
 
@@ -383,6 +384,7 @@
                 });
 
                 $('#paymentHistoryTableBody').html(rows || '<tr><td colspan="6" class="text-center text-muted py-4">No supplier payments recorded yet</td></tr>');
+                window.adminTableUtils?.enhanceTables(document.body);
             }
 
             function loadPurchaseOrders() {

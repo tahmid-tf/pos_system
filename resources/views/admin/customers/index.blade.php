@@ -94,7 +94,7 @@
         <div class="card mb-4">
             <div class="card-header">Customer List</div>
             <div class="card-body" id="customerTableWrapper">
-                <table class="table table-bordered align-middle mb-0">
+                <table class="table table-bordered align-middle mb-0" data-mobile-table>
                     <thead>
                         <tr>
                             <th>Name</th>
@@ -170,7 +170,7 @@
                 <div class="modal-body">
                     <div class="row mb-4" id="historySummary"></div>
                     <div class="table-responsive">
-                        <table class="table table-bordered align-middle mb-0">
+                        <table class="table table-bordered align-middle mb-0" data-mobile-table>
                             <thead>
                                 <tr>
                                     <th>Invoice</th>
@@ -293,6 +293,7 @@
 
                 $('#customerTableBody').html(html || '<tr><td colspan="8" class="text-center text-muted py-4">No customers found</td></tr>');
                 updateStats();
+                window.adminTableUtils?.enhanceTables(document.getElementById('customerTableWrapper'));
                 feather.replace();
             }
 
@@ -364,6 +365,7 @@
                 });
 
                 $('#historyTableBody').html(rows || '<tr><td colspan="9" class="text-center text-muted py-4">No purchase history found</td></tr>');
+                window.adminTableUtils?.enhanceTables(document.getElementById('historyModal'));
                 feather.replace();
             }
 

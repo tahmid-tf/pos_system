@@ -61,7 +61,7 @@
         <div class="card mb-4 mt-2">
             <div class="card-header">Stock Overview</div>
             <div class="card-body" id="stockLevelsTableWrapper">
-                <table class="table table-bordered align-middle mb-0" id="stockLevelsTable">
+                <table class="table table-bordered align-middle mb-0" id="stockLevelsTable" data-mobile-table>
                     <thead>
                         <tr>
                             <th>Product</th>
@@ -101,7 +101,7 @@
 
             function getTableMarkup(products) {
                 return `
-                    <table class="table table-bordered align-middle mb-0" id="stockLevelsTable">
+                    <table class="table table-bordered align-middle mb-0" id="stockLevelsTable" data-mobile-table>
                         <thead>
                             <tr>
                                 <th>Product</th>
@@ -151,6 +151,7 @@
 
             function renderTable(products) {
                 stockLevelsTableWrapper.innerHTML = getTableMarkup(products);
+                window.adminTableUtils?.enhanceTables(stockLevelsTableWrapper);
             }
 
             async function loadStockLevels() {

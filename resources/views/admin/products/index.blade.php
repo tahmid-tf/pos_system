@@ -38,7 +38,7 @@
                 </button>
             </div>
             <div class="card-body" id="productTableWrapper">
-                <table class="table table-striped" id="productTable">
+                <table class="table table-striped" id="productTable" data-mobile-table>
                     <thead>
                         <tr>
                             <th>#</th>
@@ -243,7 +243,7 @@
 
             function getTableMarkup(products) {
                 return `
-                    <table class="table table-striped" id="productTable">
+                    <table class="table table-striped" id="productTable" data-mobile-table>
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -299,6 +299,7 @@
 
                 const productTable = document.getElementById('productTable');
                 dataTableInstance = new simpleDatatables.DataTable(productTable);
+                window.adminTableUtils?.enhanceTables(productTableWrapper);
                 feather.replace();
             }
 

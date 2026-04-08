@@ -25,7 +25,7 @@
         <div class="card mb-4">
             <div class="card-header">Alert List</div>
             <div class="card-body table-responsive">
-                <table class="table table-bordered align-middle">
+                <table class="table table-bordered align-middle" data-mobile-table>
                     <thead>
                         <tr>
                             <th>Product</th>

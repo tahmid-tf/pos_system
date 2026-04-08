@@ -1,6 +1,6 @@
 # POS System
 
-<img src="/public/assets/images/dashboard.png" alt="POS System">
+![Dashboard](public/assets/images/dashboard.png)
 
 A professional Laravel-based Point of Sale and business management system for retail operations. The application combines POS checkout, inventory control, procurement, customer management, reporting, notifications, audit logging, and an admin dashboard in a single back-office workflow.
 
@@ -18,6 +18,60 @@ This project is built for day-to-day store operations. It supports:
 - accounting snapshots and report exports
 - admin notifications for operational events
 - audit logs for business-critical changes
+
+## Screenshots
+
+### Dashboard
+
+![Dashboard](public/assets/images/dashboard.png)
+
+### Audit Logs
+
+![Audit Logs](public/assets/images/audit_logs.png)
+
+### Categories
+
+![Categories](public/assets/images/categories.png)
+
+### Customers
+
+![Customers](public/assets/images/customers.png)
+
+### Low Stock Alerts
+
+![Low Stock Alerts](public/assets/images/low_stock_alerts.png)
+
+### Notifications
+
+![Notifications](public/assets/images/notifications.png)
+
+### POS Terminal
+
+![POS Terminal](public/assets/images/pos_terminal.png)
+
+### Products
+
+![Products](public/assets/images/products.png)
+
+### Purchase Orders
+
+![Purchase Orders](public/assets/images/purchase_orders.png)
+
+### Reporting And Basic Accounting
+
+![Reporting And Basic Accounting](public/assets/images/reporting_and_basic_accounting.png)
+
+### Stock Levels
+
+![Stock Levels](public/assets/images/stock_levels.png)
+
+### Stock Movements
+
+![Stock Movements](public/assets/images/stock_movements.png)
+
+### Suppliers
+
+![Suppliers](public/assets/images/suppliers.png)
 
 ## Core Modules
 

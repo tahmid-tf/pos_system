@@ -59,7 +59,7 @@
                 <span class="small text-muted" id="movementPaginationSummary"></span>
             </div>
             <div class="card-body" id="movementTableWrapper">
-                <table class="table table-bordered align-middle mb-0">
+                <table class="table table-bordered align-middle mb-0" data-mobile-table>
                     <thead>
                         <tr>
                             <th>Date</th>
@@ -128,7 +128,7 @@
 
             function getTableMarkup(movements) {
                 return `
-                    <table class="table table-bordered align-middle mb-0">
+                    <table class="table table-bordered align-middle mb-0" data-mobile-table>
                         <thead>
                             <tr>
                                 <th>Date</th>
@@ -195,6 +195,7 @@
 
                 const payload = await response.json();
                 movementTableWrapper.innerHTML = getTableMarkup(payload.data || []);
+                window.adminTableUtils?.enhanceTables(movementTableWrapper);
                 updatePagination(payload.pagination || {});
 
                 const url = new URL(window.location.href);

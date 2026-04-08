@@ -58,7 +58,7 @@
             <div class="card-header">Activity Timeline</div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered align-middle mb-0">
+                    <table class="table table-bordered align-middle mb-0" data-mobile-table>
                         <thead>
                             <tr>
                                 <th>Date</th>
@@ -132,6 +132,7 @@
                 });
 
                 $('#auditLogTableBody').html(html || '<tr><td colspan="7" class="text-center text-muted py-5">No audit logs found for the selected filters.</td></tr>');
+                window.adminTableUtils?.enhanceTables(document.body);
             }
 
             function updatePagination(meta) {

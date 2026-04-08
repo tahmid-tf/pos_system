@@ -101,7 +101,7 @@
             <div class="card-header" id="reportTableTitle">Report Details</div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered align-middle mb-0">
+                    <table class="table table-bordered align-middle mb-0" data-mobile-table>
                         <thead id="reportTableHead"></thead>
                         <tbody id="reportTableBody"></tbody>
                     </table>
@@ -226,7 +226,7 @@
             <div class="card-header">Ledger Management</div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered align-middle mb-0">
+                    <table class="table table-bordered align-middle mb-0" data-mobile-table>
                         <thead>
                             <tr>
                                 <th>Ledger</th>
@@ -370,6 +370,7 @@
 
                 $('#reportTableHead').html(headHtml);
                 $('#reportTableBody').html(bodyHtml);
+                window.adminTableUtils?.enhanceTables(document.body);
             }
 
             function renderCustomSections(sections) {
@@ -508,6 +509,7 @@
                 });
 
                 $('#ledgerTableBody').html(html || '<tr><td colspan="4" class="text-center text-muted py-4">No ledgers available</td></tr>');
+                window.adminTableUtils?.enhanceTables(document.body);
             }
 
             function loadAccountingSnapshot() {

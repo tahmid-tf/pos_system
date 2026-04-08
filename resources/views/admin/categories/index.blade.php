@@ -31,7 +31,7 @@
         <div class="card mb-4">
             <div class="card-header">Category Management</div>
             <div class="card-body" id="categoryTableWrapper">
-                <table class="table table-striped" id="categoryTable">
+                <table class="table table-striped" id="categoryTable" data-mobile-table>
                     <thead>
                         <tr>
                             <th>#</th>
@@ -92,7 +92,7 @@
 
             function getTableMarkup(categories) {
                 return `
-                    <table class="table table-striped" id="categoryTable">
+                    <table class="table table-striped" id="categoryTable" data-mobile-table>
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -130,6 +130,7 @@
 
                 const categoryTable = document.getElementById('categoryTable');
                 dataTableInstance = new simpleDatatables.DataTable(categoryTable);
+                window.adminTableUtils?.enhanceTables(wrapper);
                 feather.replace();
             }
 

@@ -314,6 +314,122 @@
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js" crossorigin="anonymous"></script>
     <script src="{{ asset('js/litepicker.js') }}"></script>
     <script>
+        (function() {
+            function getHeaderLabels(table) {
+                return Array.from(table.querySelectorAll('thead th')).map(function(header) {
+                    return header.textContent.replace(/\s+/g, ' ').trim();
+                });
+            }
+
+            function markEmptyRows(table) {
+                Array.from(table.tBodies || []).forEach(function(tbody) {
+                    Array.from(tbody.rows).forEach(function(row) {
+                        const cells = Array.from(row.cells || []);
+                        const isEmptyRow = cells.length === 1 && Number(cells[0].getAttribute('colspan') || 1) > 1;
+                        row.classList.toggle('mobile-stack-empty-row', isEmptyRow);
+                    });
+                });
+            }
+
+            function applyLabels(table) {
+                const labels = getHeaderLabels(table);
+
+                table.classList.add('mobile-stack-table');
+                Array.from(table.tBodies || []).forEach(function(tbody) {
+                    Array.from(tbody.rows).forEach(function(row) {
+                        Array.from(row.cells || []).forEach(function(cell, index) {
+                            if (cell.tagName === 'TD') {
+                                cell.setAttribute('data-label', labels[index] || '');
+                            }
+                        });
+                    });
+                });
+
+                markEmptyRows(table);
+            }
+
+            function ensureWrapper(table) {
+                const dataTableContainer = table.closest('.dataTable-container');
+                if (dataTableContainer) {
+                    dataTableContainer.classList.add('mobile-table-shell');
+                    return;
+                }
+
+                const existingWrapper = table.parentElement;
+                if (existingWrapper && existingWrapper.classList.contains('table-responsive')) {
+                    existingWrapper.classList.add('mobile-table-shell');
+                    return;
+                }
+
+                if (!existingWrapper) {
+                    return;
+                }
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'table-responsive mobile-table-shell';
+                existingWrapper.insertBefore(wrapper, table);
+                wrapper.appendChild(table);
+            }
+
+            function observeTable(table) {
+                if (table.dataset.mobileTableObserved === 'true') {
+                    return;
+                }
+
+                const observer = new MutationObserver(function() {
+                    applyLabels(table);
+                });
+
+                observer.observe(table, {
+                    childList: true,
+                    subtree: true
+                });
+
+                table.dataset.mobileTableObserved = 'true';
+            }
+
+            function enhanceTables(target) {
+                const root = target || document;
+                const tables = root.matches && root.matches('table[data-mobile-table]') ? [root] : Array.from(root
+                    .querySelectorAll('table[data-mobile-table]'));
+
+                tables.forEach(function(table) {
+                    ensureWrapper(table);
+                    applyLabels(table);
+                    observeTable(table);
+                });
+            }
+
+            function watchForTables() {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        mutation.addedNodes.forEach(function(node) {
+                            if (node.nodeType !== Node.ELEMENT_NODE) {
+                                return;
+                            }
+
+                            enhanceTables(node);
+                        });
+                    });
+                });
+
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+
+            window.adminTableUtils = {
+                enhanceTables: enhanceTables
+            };
+
+            document.addEventListener('DOMContentLoaded', function() {
+                enhanceTables(document);
+                watchForTables();
+            });
+        })();
+    </script>
+    <script>
         $(function() {
             const notificationRoutes = {
                 feed: '{{ route('notifications.feed') }}',

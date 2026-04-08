@@ -21044,3 +21044,118 @@ pre[class*=language-] {
 .token.variable {
   color: #ff6666;
 }
+
+.mobile-table-shell {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 767.98px) {
+  .mobile-table-shell {
+    overflow: visible;
+  }
+
+  .mobile-table-shell .mobile-stack-table,
+  .mobile-table-shell .mobile-stack-table tbody,
+  .mobile-table-shell .mobile-stack-table tr,
+  .mobile-table-shell .mobile-stack-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .mobile-table-shell .mobile-stack-table thead {
+    display: none;
+  }
+
+  .mobile-table-shell .mobile-stack-table tbody {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .mobile-table-shell .mobile-stack-table tbody tr {
+    background: #fff;
+    border: 1px solid #e0e5ec;
+    border-radius: 0.75rem;
+    box-shadow: 0 0.125rem 0.5rem rgba(33, 40, 50, 0.06);
+    padding: 0.9rem 1rem;
+  }
+
+  .mobile-table-shell .mobile-stack-table tbody td {
+    align-items: flex-start;
+    border: 0;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    text-align: right;
+    white-space: normal;
+  }
+
+  .mobile-table-shell .mobile-stack-table tbody td::before {
+    color: #4a515b;
+    content: attr(data-label);
+    flex: 0 0 42%;
+    font-weight: 600;
+    max-width: 42%;
+    text-align: left;
+  }
+
+  .mobile-table-shell .mobile-stack-table tbody td[data-label=""]::before {
+    content: none;
+  }
+
+  .mobile-table-shell .mobile-stack-table tbody td > * {
+    margin-left: auto;
+    max-width: 58%;
+  }
+
+  .mobile-table-shell .mobile-stack-table tbody td .btn,
+  .mobile-table-shell .mobile-stack-table tbody td .badge,
+  .mobile-table-shell .mobile-stack-table tbody td pre,
+  .mobile-table-shell .mobile-stack-table tbody td .d-flex,
+  .mobile-table-shell .mobile-stack-table tbody td .fw-semibold {
+    margin-left: 0;
+    max-width: 100%;
+  }
+
+  .mobile-table-shell .mobile-stack-table tbody td:last-child {
+    padding-bottom: 0;
+  }
+
+  .mobile-table-shell .mobile-stack-table tbody td[colspan],
+  .mobile-table-shell .mobile-stack-table tbody tr.mobile-stack-empty-row td {
+    display: block;
+    padding: 0.25rem 0;
+    text-align: center;
+  }
+
+  .mobile-table-shell .mobile-stack-table tbody td[colspan]::before,
+  .mobile-table-shell .mobile-stack-table tbody tr.mobile-stack-empty-row td::before {
+    content: none;
+  }
+
+  .dataTable-top,
+  .dataTable-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .dataTable-top > nav:first-child,
+  .dataTable-top > div:first-child,
+  .dataTable-bottom > nav:first-child,
+  .dataTable-bottom > div:first-child,
+  .dataTable-top > nav:last-child,
+  .dataTable-top > div:last-child,
+  .dataTable-bottom > nav:last-child,
+  .dataTable-bottom > div:last-child {
+    float: none;
+    width: 100%;
+  }
+
+  .dataTable-selector,
+  .dataTable-input {
+    width: 100%;
+  }
+}

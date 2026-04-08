@@ -66,7 +66,7 @@
             <div class="card-header">Supplier List</div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered align-middle mb-0">
+                    <table class="table table-bordered align-middle mb-0" data-mobile-table>
                         <thead>
                             <tr>
                                 <th>Name</th>
@@ -215,6 +215,7 @@
 
                 $('#supplierTableBody').html(html || '<tr><td colspan="8" class="text-center text-muted py-4">No suppliers found</td></tr>');
                 updateStats();
+                window.adminTableUtils?.enhanceTables(document.body);
                 feather.replace();
             }
 
