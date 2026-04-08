@@ -8,674 +8,241 @@
                     <div class="col-auto mt-4">
                         <h1 class="page-header-title">
                             <div class="page-header-icon">
-                                <i data-feather="activity"></i>
+                                <i data-feather="home"></i>
                             </div>
-                            Dashboard
+                            Business Dashboard
                         </h1>
                         <div class="page-header-subtitle">
-                            Example dashboard overview and content summary
+                            Live business performance, inventory watchlist, and operational activity in one place.
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-auto mt-4">
+                        <div class="badge bg-white text-primary p-3">
+                            Snapshot Updated: {{ now()->format('d M Y h:i A') }}
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </header>
-    <!-- Main page content-->
+
     <div class="container-xl px-4 mt-n10">
         <div class="row">
-            <div class="col-xl-4 mb-4">
-                <!-- Dashboard example card 1-->
-                <a class="card lift h-100" href="#!">
-                    <div class="card-body d-flex justify-content-center flex-column">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="me-3">
-                                <i class="feather-xl text-primary mb-3" data-feather="package"></i>
-                                <h5>Powerful Components</h5>
-                                <div class="text-muted small">
-                                    To create informative visual elements on your pages
-                                </div>
-                            </div>
-                            <img src="{{ asset('assets/img/illustrations/browser-stats.svg') }}" alt="..."
-                                style="width: 8rem" />
-                        </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-start-lg border-start-primary h-100">
+                    <div class="card-body">
+                        <div class="small text-muted">Monthly Revenue</div>
+                        <div class="h3 mb-0">BDT {{ number_format($stats['monthly_revenue'], 2) }}</div>
+                        <div class="small text-success mt-2">Collected: BDT {{ number_format($stats['monthly_collected'], 2) }}</div>
                     </div>
-                </a>
+                </div>
             </div>
-            <div class="col-xl-4 mb-4">
-                <!-- Dashboard example card 2-->
-                <a class="card lift h-100" href="#!">
-                    <div class="card-body d-flex justify-content-center flex-column">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="me-3">
-                                <i class="feather-xl text-secondary mb-3" data-feather="book"></i>
-                                <h5>Documentation</h5>
-                                <div class="text-muted small">
-                                    To keep you on track when working with our toolkit
-                                </div>
-                            </div>
-                            <img src="{{ asset('assets/img/illustrations/processing.svg') }}" alt="..."
-                                style="width: 8rem" />
-                        </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-start-lg border-start-success h-100">
+                    <div class="card-body">
+                        <div class="small text-muted">Today's Sales</div>
+                        <div class="h3 mb-0">{{ number_format($stats['today_invoices']) }}</div>
+                        <div class="small text-muted mt-2">Revenue: BDT {{ number_format($stats['today_revenue'], 2) }}</div>
                     </div>
-                </a>
+                </div>
             </div>
-            <div class="col-xl-4 mb-4">
-                <!-- Dashboard example card 3-->
-                <a class="card lift h-100" href="#!">
-                    <div class="card-body d-flex justify-content-center flex-column">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="me-3">
-                                <i class="feather-xl text-green mb-3" data-feather="layout"></i>
-                                <h5>Pages &amp; Layouts</h5>
-                                <div class="text-muted small">
-                                    To help get you started when building your new UI
-                                </div>
-                            </div>
-                            <img src="{{ asset('assets/img/illustrations/windows.svg') }}" alt="..."
-                                style="width: 8rem" />
-                        </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-start-lg border-start-warning h-100">
+                    <div class="card-body">
+                        <div class="small text-muted">Low Stock Products</div>
+                        <div class="h3 mb-0">{{ number_format($stats['low_stock']) }}</div>
+                        <div class="small text-muted mt-2">Units in stock: {{ number_format($stats['stock_units']) }}</div>
                     </div>
-                </a>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-start-lg border-start-danger h-100">
+                    <div class="card-body">
+                        <div class="small text-muted">Pending Alerts</div>
+                        <div class="h3 mb-0">{{ number_format($stats['unread_notifications']) }}</div>
+                        <div class="small text-muted mt-2">Supplier due: BDT {{ number_format($stats['supplier_due'], 2) }}</div>
+                    </div>
+                </div>
             </div>
         </div>
+
         <div class="row">
             <div class="col-xxl-8">
-                <!-- Tabbed dashboard card example-->
                 <div class="card mb-4">
-                    <div class="card-header border-bottom">
-                        <!-- Dashboard card navigation-->
-                        <ul class="nav nav-tabs card-header-tabs" id="dashboardNav" role="tablist">
-                            <li class="nav-item me-1">
-                                <a class="nav-link active" id="overview-pill" href="#overview" data-bs-toggle="tab"
-                                    role="tab" aria-controls="overview" aria-selected="true">Overview</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="activities-pill" href="#activities" data-bs-toggle="tab"
-                                    role="tab" aria-controls="activities" aria-selected="false">Activities</a>
-                            </li>
-                        </ul>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Sales Trend</span>
+                        <span class="badge bg-primary-soft text-primary">Last 7 Days</span>
                     </div>
                     <div class="card-body">
-                        <div class="tab-content" id="dashboardNavContent">
-                            <!-- Dashboard Tab Pane 1-->
-                            <div class="tab-pane fade show active" id="overview" role="tabpanel"
-                                aria-labelledby="overview-pill">
-                                <div class="chart-area mb-4 mb-lg-0" style="height: 20rem">
-                                    <canvas id="myAreaChart" width="100%" height="30"></canvas>
-                                </div>
-                            </div>
-                            <!-- Dashboard Tab Pane 2-->
-                            <div class="tab-pane fade" id="activities" role="tabpanel" aria-labelledby="activities-pill">
-                                <table id="datatablesSimple">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Event</th>
-                                            <th>Time</th>
-                                        </tr>
-                                    </thead>
-                                    <tfoot>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Event</th>
-                                            <th>Time</th>
-                                        </tr>
-                                    </tfoot>
-                                    <tbody>
-                                        <tr>
-                                            <td>01/13/20</td>
-                                            <td>
-                                                <i class="me-2 text-green" data-feather="zap"></i>
-                                                Server online
-                                            </td>
-                                            <td>1:21 AM</td>
-                                        </tr>
-                                        <tr>
-                                            <td>01/13/20</td>
-                                            <td>
-                                                <i class="me-2 text-red" data-feather="zap-off"></i>
-                                                Server restarted
-                                            </td>
-                                            <td>1:00 AM</td>
-                                        </tr>
-                                        <tr>
-                                            <td>01/12/20</td>
-                                            <td>
-                                                <i class="me-2 text-purple" data-feather="shopping-cart"></i>
-                                                New order placed! Order #
-                                                <a href="#!">1126550</a>
-                                            </td>
-                                            <td>5:45 AM</td>
-                                        </tr>
-                                        <tr>
-                                            <td>01/12/20</td>
-                                            <td>
-                                                <i class="me-2 text-blue" data-feather="user"></i>
-                                                Valerie Luna submitted
-                                                <a href="#!">quarter four report</a>
-                                            </td>
-                                            <td>4:23 PM</td>
-                                        </tr>
-                                        <tr>
-                                            <td>01/12/20</td>
-                                            <td>
-                                                <i class="me-2 text-yellow" data-feather="database"></i>
-                                                Database backup created
-                                            </td>
-                                            <td>3:51 AM</td>
-                                        </tr>
-                                        <tr>
-                                            <td>01/12/20</td>
-                                            <td>
-                                                <i class="me-2 text-purple" data-feather="shopping-cart"></i>
-                                                New order placed! Order #
-                                                <a href="#!">1126549</a>
-                                            </td>
-                                            <td>1:22 AM</td>
-                                        </tr>
-                                        <tr>
-                                            <td>01/11/20</td>
-                                            <td>
-                                                <i class="me-2 text-blue" data-feather="user-plus"></i>
-                                                New user created:
-                                                <a href="#!">Sam Malone</a>
-                                            </td>
-                                            <td>4:18 PM</td>
-                                        </tr>
-                                        <tr>
-                                            <td>01/11/20</td>
-                                            <td>
-                                                <i class="me-2 text-purple" data-feather="shopping-cart"></i>
-                                                New order placed! Order #
-                                                <a href="#!">1126548</a>
-                                            </td>
-                                            <td>4:02 PM</td>
-                                        </tr>
-                                        <tr>
-                                            <td>01/11/20</td>
-                                            <td>
-                                                <i class="me-2 text-purple" data-feather="shopping-cart"></i>
-                                                New order placed! Order #
-                                                <a href="#!">1126547</a>
-                                            </td>
-                                            <td>3:47 PM</td>
-                                        </tr>
-                                        <tr>
-                                            <td>01/11/20</td>
-                                            <td>
-                                                <i class="me-2 text-green" data-feather="zap"></i>
-                                                Server online
-                                            </td>
-                                            <td>1:19 AM</td>
-                                        </tr>
-                                        <tr>
-                                            <td>01/11/20</td>
-                                            <td>
-                                                <i class="me-2 text-red" data-feather="zap-off"></i>
-                                                Server restarted
-                                            </td>
-                                            <td>1:00 AM</td>
-                                        </tr>
-                                        <tr>
-                                            <td>01/10/20</td>
-                                            <td>
-                                                <i class="me-2 text-purple" data-feather="shopping-cart"></i>
-                                                New order placed! Order #
-                                                <a href="#!">1126547</a>
-                                            </td>
-                                            <td>5:31 PM</td>
-                                        </tr>
-                                        <tr>
-                                            <td>01/10/20</td>
-                                            <td>
-                                                <i class="me-2 text-purple" data-feather="shopping-cart"></i>
-                                                New order placed! Order #
-                                                <a href="#!">1126546</a>
-                                            </td>
-                                            <td>12:13 PM</td>
-                                        </tr>
-                                        <tr>
-                                            <td>01/10/20</td>
-                                            <td>
-                                                <i class="me-2 text-blue" data-feather="user"></i>
-                                                Diane Chambers submitted
-                                                <a href="#!">quarter four report</a>
-                                            </td>
-                                            <td>10:56 AM</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div class="chart-area" style="height: 18rem;">
+                            <canvas id="salesTrendChart"></canvas>
                         </div>
                     </div>
                 </div>
-                <!-- Illustration dashboard card example-->
-                <div class="card mb-4">
-                    <div class="card-body py-5">
-                        <div class="d-flex flex-column justify-content-center">
-                            <img class="img-fluid mb-4" src="{{ asset('assets/img/illustrations/data-report.svg') }}"
-                                alt="" style="height: 10rem" />
-                            <div class="text-center px-0 px-lg-5">
-                                <h5>
-                                    New reports are here! Generate custom reports now!
-                                </h5>
-                                <p class="mb-4">
-                                    Our new report generation system is now online. You
-                                    can start creating custom reporting for any documents
-                                    available on your account.
-                                </p>
-                                <a class="btn btn-primary p-3" href="#!">Get Started</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
                 <div class="row">
                     <div class="col-xl-6 mb-4">
-                        <!-- Dashboard activity timeline example-->
-                        <div class="card card-header-actions h-100">
-                            <div class="card-header">
-                                Recent Activity
-                                <div class="dropdown no-caret">
-                                    <button class="btn btn-transparent-dark btn-icon dropdown-toggle"
-                                        id="dropdownMenuButton" type="button" data-bs-toggle="dropdown"
-                                        aria-haspopup="true" aria-expanded="false">
-                                        <i class="text-gray-500" data-feather="more-vertical"></i>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-end animated--fade-in-up"
-                                        aria-labelledby="dropdownMenuButton">
-                                        <h6 class="dropdown-header">Filter Activity:</h6>
-                                        <a class="dropdown-item" href="#!"><span
-                                                class="badge bg-green-soft text-green my-1">Commerce</span></a>
-                                        <a class="dropdown-item" href="#!"><span
-                                                class="badge bg-blue-soft text-blue my-1">Reporting</span></a>
-                                        <a class="dropdown-item" href="#!"><span
-                                                class="badge bg-yellow-soft text-yellow my-1">Server</span></a>
-                                        <a class="dropdown-item" href="#!"><span
-                                                class="badge bg-purple-soft text-purple my-1">Users</span></a>
-                                    </div>
-                                </div>
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>Recent Sales</span>
+                                <a href="{{ route('sales.index') }}" class="btn btn-sm btn-outline-primary">Open POS</a>
                             </div>
                             <div class="card-body">
-                                <div class="timeline timeline-xs">
-                                    <!-- Timeline Item 1-->
-                                    <div class="timeline-item">
-                                        <div class="timeline-item-marker">
-                                            <div class="timeline-item-marker-text">
-                                                27 min
+                                <div class="list-group list-group-flush">
+                                    @forelse ($recentSales as $sale)
+                                        <div class="list-group-item px-0">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <div class="fw-semibold">{{ $sale->invoice_number }}</div>
+                                                    <div class="small text-muted">
+                                                        {{ $sale->customer?->name ?? 'Walk-in Customer' }} ·
+                                                        {{ optional($sale->sold_at)->format('d M Y h:i A') }}
+                                                    </div>
+                                                </div>
+                                                <div class="text-end">
+                                                    <div class="fw-semibold">BDT {{ number_format($sale->total, 2) }}</div>
+                                                    <span class="badge bg-{{ $sale->status === 'paid' ? 'success' : ($sale->status === 'partial' ? 'warning text-dark' : 'secondary') }}">
+                                                        {{ ucfirst($sale->status) }}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <div class="timeline-item-marker-indicator bg-green"></div>
                                         </div>
-                                        <div class="timeline-item-content">
-                                            New order placed!
-                                            <a class="fw-bold text-dark" href="#!">Order #2912</a>
-                                            has been successfully placed.
-                                        </div>
-                                    </div>
-                                    <!-- Timeline Item 2-->
-                                    <div class="timeline-item">
-                                        <div class="timeline-item-marker">
-                                            <div class="timeline-item-marker-text">
-                                                58 min
-                                            </div>
-                                            <div class="timeline-item-marker-indicator bg-blue"></div>
-                                        </div>
-                                        <div class="timeline-item-content">
-                                            Your
-                                            <a class="fw-bold text-dark" href="#!">weekly report</a>
-                                            has been generated and is ready to view.
-                                        </div>
-                                    </div>
-                                    <!-- Timeline Item 3-->
-                                    <div class="timeline-item">
-                                        <div class="timeline-item-marker">
-                                            <div class="timeline-item-marker-text">2 hrs</div>
-                                            <div class="timeline-item-marker-indicator bg-purple"></div>
-                                        </div>
-                                        <div class="timeline-item-content">
-                                            New user
-                                            <a class="fw-bold text-dark" href="#!">Valerie Luna</a>
-                                            has registered
-                                        </div>
-                                    </div>
-                                    <!-- Timeline Item 4-->
-                                    <div class="timeline-item">
-                                        <div class="timeline-item-marker">
-                                            <div class="timeline-item-marker-text">1 day</div>
-                                            <div class="timeline-item-marker-indicator bg-yellow"></div>
-                                        </div>
-                                        <div class="timeline-item-content">
-                                            Server activity monitor alert
-                                        </div>
-                                    </div>
-                                    <!-- Timeline Item 5-->
-                                    <div class="timeline-item">
-                                        <div class="timeline-item-marker">
-                                            <div class="timeline-item-marker-text">1 day</div>
-                                            <div class="timeline-item-marker-indicator bg-green"></div>
-                                        </div>
-                                        <div class="timeline-item-content">
-                                            New order placed!
-                                            <a class="fw-bold text-dark" href="#!">Order #2911</a>
-                                            has been successfully placed.
-                                        </div>
-                                    </div>
-                                    <!-- Timeline Item 6-->
-                                    <div class="timeline-item">
-                                        <div class="timeline-item-marker">
-                                            <div class="timeline-item-marker-text">1 day</div>
-                                            <div class="timeline-item-marker-indicator bg-purple"></div>
-                                        </div>
-                                        <div class="timeline-item-content">
-                                            Details for
-                                            <a class="fw-bold text-dark" href="#!">Marketing and Planning
-                                                Meeting</a>
-                                            have been updated.
-                                        </div>
-                                    </div>
-                                    <!-- Timeline Item 7-->
-                                    <div class="timeline-item">
-                                        <div class="timeline-item-marker">
-                                            <div class="timeline-item-marker-text">
-                                                2 days
-                                            </div>
-                                            <div class="timeline-item-marker-indicator bg-green"></div>
-                                        </div>
-                                        <div class="timeline-item-content">
-                                            New order placed!
-                                            <a class="fw-bold text-dark" href="#!">Order #2910</a>
-                                            has been successfully placed.
-                                        </div>
-                                    </div>
+                                    @empty
+                                        <div class="text-center text-muted py-5">No recent sales found.</div>
+                                    @endforelse
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="col-xl-6 mb-4">
-                        <!-- Pie chart with legend example-->
                         <div class="card h-100">
-                            <div class="card-header">Traffic Sources</div>
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>Low Stock Watchlist</span>
+                                <a href="{{ route('inventory.alerts') }}" class="btn btn-sm btn-outline-warning">Review</a>
+                            </div>
                             <div class="card-body">
-                                <div class="chart-pie mb-4">
-                                    <canvas id="myPieChart" width="100%" height="50"></canvas>
-                                </div>
                                 <div class="list-group list-group-flush">
-                                    <div
-                                        class="list-group-item d-flex align-items-center justify-content-between small px-0 py-2">
-                                        <div class="me-3">
-                                            <i class="fas fa-circle fa-sm me-1 text-blue"></i>
-                                            Direct
+                                    @forelse ($lowStockProducts as $product)
+                                        <div class="list-group-item px-0">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <div class="fw-semibold">{{ $product->name }}</div>
+                                                    <div class="small text-muted">{{ $product->sku }}</div>
+                                                </div>
+                                                <div class="text-end">
+                                                    <div class="fw-semibold text-warning">{{ $product->current_stock }} units</div>
+                                                    <div class="small text-muted">Threshold {{ $product->low_stock_threshold }}</div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="fw-500 text-dark">55%</div>
-                                    </div>
-                                    <div
-                                        class="list-group-item d-flex align-items-center justify-content-between small px-0 py-2">
-                                        <div class="me-3">
-                                            <i class="fas fa-circle fa-sm me-1 text-purple"></i>
-                                            Social
-                                        </div>
-                                        <div class="fw-500 text-dark">15%</div>
-                                    </div>
-                                    <div
-                                        class="list-group-item d-flex align-items-center justify-content-between small px-0 py-2">
-                                        <div class="me-3">
-                                            <i class="fas fa-circle fa-sm me-1 text-green"></i>
-                                            Referral
-                                        </div>
-                                        <div class="fw-500 text-dark">30%</div>
-                                    </div>
+                                    @empty
+                                        <div class="text-center text-muted py-5">Inventory levels look healthy.</div>
+                                    @endforelse
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">Recent Activity</div>
+                    <div class="card-body">
+                        <div class="timeline timeline-xs">
+                            @forelse ($recentActivities as $activity)
+                                <div class="timeline-item">
+                                    <div class="timeline-item-marker">
+                                        <div class="timeline-item-marker-text">
+                                            {{ $activity->created_at->diffForHumans() }}
+                                        </div>
+                                        <div class="timeline-item-marker-indicator bg-primary"></div>
+                                    </div>
+                                    <div class="timeline-item-content">
+                                        <div class="fw-semibold">{{ $activity->description }}</div>
+                                        <div class="small text-muted">
+                                            {{ ucfirst(str_replace('_', ' ', $activity->module)) }}
+                                            @if ($activity->user)
+                                                · {{ $activity->user->name }}
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="text-center text-muted py-4">No activity has been logged yet.</div>
+                            @endforelse
                         </div>
                     </div>
                 </div>
             </div>
+
             <div class="col-xxl-4">
-                <div class="row">
-                    <div class="col-xl-6 col-xxl-12">
-                        <!-- Team members / people dashboard card example-->
-                        <div class="card mb-4">
-                            <div class="card-header">People</div>
-                            <div class="card-body">
-                                <!-- Item 1-->
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <div class="d-flex align-items-center flex-shrink-0 me-3">
-                                        <div class="avatar avatar-xl me-3 bg-gray-200">
-                                            <img class="avatar-img img-fluid"
-                                                src="{{ asset('assets/img/illustrations/profiles/profile-1.png') }}"
-                                                alt="" />
-                                        </div>
-                                        <div class="d-flex flex-column fw-bold">
-                                            <a class="text-dark line-height-normal mb-1" href="#!">Sid Rooney</a>
-                                            <div class="small text-muted line-height-normal">
-                                                Position
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="dropdown no-caret">
-                                        <button class="btn btn-transparent-dark btn-icon dropdown-toggle"
-                                            id="dropdownPeople1" type="button" data-bs-toggle="dropdown"
-                                            aria-haspopup="true" aria-expanded="false">
-                                            <i data-feather="more-vertical"></i>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-menu-end animated--fade-in-up"
-                                            aria-labelledby="dropdownPeople1">
-                                            <a class="dropdown-item" href="#!">Action</a>
-                                            <a class="dropdown-item" href="#!">Another action</a>
-                                            <a class="dropdown-item" href="#!">Something else here</a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Item 2-->
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <div class="d-flex align-items-center flex-shrink-0 me-3">
-                                        <div class="avatar avatar-xl me-3 bg-gray-200">
-                                            <img class="avatar-img img-fluid"
-                                                src="{{ asset('assets/img/illustrations/profiles/profile-2.png') }}"
-                                                alt="" />
-                                        </div>
-                                        <div class="d-flex flex-column fw-bold">
-                                            <a class="text-dark line-height-normal mb-1" href="#!">Keelan
-                                                Garza</a>
-                                            <div class="small text-muted line-height-normal">
-                                                Position
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="dropdown no-caret">
-                                        <button class="btn btn-transparent-dark btn-icon dropdown-toggle"
-                                            id="dropdownPeople2" type="button" data-bs-toggle="dropdown"
-                                            aria-haspopup="true" aria-expanded="false">
-                                            <i data-feather="more-vertical"></i>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-menu-end animated--fade-in-up"
-                                            aria-labelledby="dropdownPeople2">
-                                            <a class="dropdown-item" href="#!">Action</a>
-                                            <a class="dropdown-item" href="#!">Another action</a>
-                                            <a class="dropdown-item" href="#!">Something else here</a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Item 3-->
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <div class="d-flex align-items-center flex-shrink-0 me-3">
-                                        <div class="avatar avatar-xl me-3 bg-gray-200">
-                                            <img class="avatar-img img-fluid"
-                                                src="{{ asset('assets/img/illustrations/profiles/profile-3.png') }}"
-                                                alt="" />
-                                        </div>
-                                        <div class="d-flex flex-column fw-bold">
-                                            <a class="text-dark line-height-normal mb-1" href="#!">Kaia Smyth</a>
-                                            <div class="small text-muted line-height-normal">
-                                                Position
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="dropdown no-caret">
-                                        <button class="btn btn-transparent-dark btn-icon dropdown-toggle"
-                                            id="dropdownPeople3" type="button" data-bs-toggle="dropdown"
-                                            aria-haspopup="true" aria-expanded="false">
-                                            <i data-feather="more-vertical"></i>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-menu-end animated--fade-in-up"
-                                            aria-labelledby="dropdownPeople3">
-                                            <a class="dropdown-item" href="#!">Action</a>
-                                            <a class="dropdown-item" href="#!">Another action</a>
-                                            <a class="dropdown-item" href="#!">Something else here</a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Item 4-->
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <div class="d-flex align-items-center flex-shrink-0 me-3">
-                                        <div class="avatar avatar-xl me-3 bg-gray-200">
-                                            <img class="avatar-img img-fluid"
-                                                src="{{ asset('assets/img/illustrations/profiles/profile-4.png') }}"
-                                                alt="" />
-                                        </div>
-                                        <div class="d-flex flex-column fw-bold">
-                                            <a class="text-dark line-height-normal mb-1" href="#!">Kerri
-                                                Kearney</a>
-                                            <div class="small text-muted line-height-normal">
-                                                Position
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="dropdown no-caret">
-                                        <button class="btn btn-transparent-dark btn-icon dropdown-toggle"
-                                            id="dropdownPeople4" type="button" data-bs-toggle="dropdown"
-                                            aria-haspopup="true" aria-expanded="false">
-                                            <i data-feather="more-vertical"></i>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-menu-end animated--fade-in-up"
-                                            aria-labelledby="dropdownPeople4">
-                                            <a class="dropdown-item" href="#!">Action</a>
-                                            <a class="dropdown-item" href="#!">Another action</a>
-                                            <a class="dropdown-item" href="#!">Something else here</a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Item 5-->
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <div class="d-flex align-items-center flex-shrink-0 me-3">
-                                        <div class="avatar avatar-xl me-3 bg-gray-200">
-                                            <img class="avatar-img img-fluid"
-                                                src="{{ asset('assets/img/illustrations/profiles/profile-5.png') }}"
-                                                alt="" />
-                                        </div>
-                                        <div class="d-flex flex-column fw-bold">
-                                            <a class="text-dark line-height-normal mb-1" href="#!">Georgina
-                                                Findlay</a>
-                                            <div class="small text-muted line-height-normal">
-                                                Position
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="dropdown no-caret">
-                                        <button class="btn btn-transparent-dark btn-icon dropdown-toggle"
-                                            id="dropdownPeople5" type="button" data-bs-toggle="dropdown"
-                                            aria-haspopup="true" aria-expanded="false">
-                                            <i data-feather="more-vertical"></i>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-menu-end animated--fade-in-up"
-                                            aria-labelledby="dropdownPeople5">
-                                            <a class="dropdown-item" href="#!">Action</a>
-                                            <a class="dropdown-item" href="#!">Another action</a>
-                                            <a class="dropdown-item" href="#!">Something else here</a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Item 6-->
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="d-flex align-items-center flex-shrink-0 me-3">
-                                        <div class="avatar avatar-xl me-3 bg-gray-200">
-                                            <img class="avatar-img img-fluid"
-                                                src="{{ asset('assets/img/illustrations/profiles/profile-6.png') }}"
-                                                alt="" />
-                                        </div>
-                                        <div class="d-flex flex-column fw-bold">
-                                            <a class="text-dark line-height-normal mb-1" href="#!">Wilf
-                                                Ingram</a>
-                                            <div class="small text-muted line-height-normal">
-                                                Position
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="dropdown no-caret">
-                                        <button class="btn btn-transparent-dark btn-icon dropdown-toggle"
-                                            id="dropdownPeople6" type="button" data-bs-toggle="dropdown"
-                                            aria-haspopup="true" aria-expanded="false">
-                                            <i data-feather="more-vertical"></i>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-menu-end animated--fade-in-up"
-                                            aria-labelledby="dropdownPeople6">
-                                            <a class="dropdown-item" href="#!">Action</a>
-                                            <a class="dropdown-item" href="#!">Another action</a>
-                                            <a class="dropdown-item" href="#!">Something else here</a>
-                                        </div>
-                                    </div>
+                <div class="card mb-4">
+                    <div class="card-header">Business Snapshot</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="border rounded p-3 h-100">
+                                    <div class="small text-muted">Products</div>
+                                    <div class="h4 mb-0">{{ number_format($stats['products']) }}</div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-xl-6 col-xxl-12">
-                        <!-- Project tracker card example-->
-                        <div class="card card-header-actions mb-4">
-                            <div class="card-header">
-                                Projects
-                                <a class="btn btn-sm btn-primary-soft text-primary" href="#!">Create New</a>
+                            <div class="col-6">
+                                <div class="border rounded p-3 h-100">
+                                    <div class="small text-muted">Customers</div>
+                                    <div class="h4 mb-0">{{ number_format($stats['customers']) }}</div>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <!-- Progress item 1-->
-                                <div class="d-flex align-items-center justify-content-between small mb-1">
-                                    <div class="fw-bold">Server Setup</div>
-                                    <div class="small">25%</div>
+                            <div class="col-6">
+                                <div class="border rounded p-3 h-100">
+                                    <div class="small text-muted">Today's Due</div>
+                                    <div class="h4 mb-0">BDT {{ number_format($stats['today_due'], 2) }}</div>
                                 </div>
-                                <div class="progress mb-3">
-                                    <div class="progress-bar bg-danger" role="progressbar" style="width: 25%"
-                                        aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
-                                <!-- Progress item 2-->
-                                <div class="d-flex align-items-center justify-content-between small mb-1">
-                                    <div class="fw-bold">Database Migration</div>
-                                    <div class="small">50%</div>
-                                </div>
-                                <div class="progress mb-3">
-                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 50%"
-                                        aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
-                                <!-- Progress item 3-->
-                                <div class="d-flex align-items-center justify-content-between small mb-1">
-                                    <div class="fw-bold">Version Release</div>
-                                    <div class="small">75%</div>
-                                </div>
-                                <div class="progress mb-3">
-                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 75%"
-                                        aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
-                                <!-- Progress item 4-->
-                                <div class="d-flex align-items-center justify-content-between small mb-1">
-                                    <div class="fw-bold">Product Listings</div>
-                                    <div class="small">100%</div>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: 100%"
-                                        aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div class="col-6">
+                                <div class="border rounded p-3 h-100">
+                                    <div class="small text-muted">Pending POs</div>
+                                    <div class="h4 mb-0">{{ number_format($stats['pending_purchase_orders']) }}</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <!-- Illustration dashboard card example-->
+
+                <div class="card mb-4">
+                    <div class="card-header">Revenue Mix</div>
+                    <div class="card-body">
+                        <div class="chart-pie mb-4" style="height: 16rem;">
+                            <canvas id="revenueMixChart"></canvas>
+                        </div>
+                        <div class="small text-muted">
+                            This compares monthly collected cash, outstanding customer dues, and supplier dues.
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card">
-                    <div class="card-body text-center p-5">
-                        <img class="img-fluid mb-4" src="assets/img/illustrations/team-spirit.svg" alt=""
-                            style="max-width: 16.25rem" />
-                        <h5>Team Access</h5>
-                        <p class="mb-4">
-                            Upgrade your plan to get access to team collaboration
-                            tools.
-                        </p>
-                        <a class="btn btn-primary p-3" href="#!">Upgrade</a>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Latest Notifications</span>
+                        <a href="{{ route('notifications.index') }}" class="btn btn-sm btn-outline-primary">Open</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            @forelse ($recentNotifications as $notification)
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <div class="fw-semibold">{{ $notification->title }}</div>
+                                            <div class="small text-muted">{{ $notification->message }}</div>
+                                        </div>
+                                        <span class="badge {{ $notification->read_at ? 'bg-light text-dark' : 'bg-primary' }}">
+                                            {{ $notification->read_at ? 'Read' : 'New' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="text-center text-muted py-4">No notifications available.</div>
+                            @endforelse
+                        </div>
                     </div>
                 </div>
             </div>
@@ -684,5 +251,81 @@
 @endsection
 
 @section('scripts')
-    <script src="{{ asset('assets/demo/chart-pie-demo.js') }}"></script>
+    <script>
+        $(function() {
+            const salesTrendCtx = document.getElementById('salesTrendChart');
+            const revenueMixCtx = document.getElementById('revenueMixChart');
+
+            if (salesTrendCtx) {
+                new Chart(salesTrendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: @json($salesTrendLabels),
+                        datasets: [{
+                            label: 'Sales',
+                            data: @json($salesTrendValues),
+                            borderColor: '#0061f2',
+                            backgroundColor: 'rgba(0, 97, 242, 0.08)',
+                            pointBackgroundColor: '#0061f2',
+                            pointBorderColor: '#ffffff',
+                            pointRadius: 4,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.35
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        legend: {
+                            display: false
+                        },
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true,
+                                    callback: function(value) {
+                                        return 'BDT ' + Number(value).toFixed(0);
+                                    }
+                                },
+                                gridLines: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            }],
+                            xAxes: [{
+                                gridLines: {
+                                    display: false
+                                }
+                            }]
+                        }
+                    }
+                });
+            }
+
+            if (revenueMixCtx) {
+                new Chart(revenueMixCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Collected', 'Customer Due', 'Supplier Due'],
+                        datasets: [{
+                            data: [
+                                {{ $stats['monthly_collected'] }},
+                                {{ $stats['today_due'] }},
+                                {{ $stats['supplier_due'] }}
+                            ],
+                            backgroundColor: ['#00ac69', '#f4a100', '#e81500'],
+                            hoverBackgroundColor: ['#139c5e', '#d88f00', '#c91500'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        cutoutPercentage: 72,
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                });
+            }
+        });
+    </script>
 @endsection
