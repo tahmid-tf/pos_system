@@ -117,8 +117,16 @@
                                             <td>৳{{ number_format($sale->due_amount, 2) }}</td>
                                             <td>{{ optional($sale->sold_at)->format('d M Y h:i A') }}</td>
                                             <td>
-                                                <a href="{{ route('sales.show', $sale) }}" class="btn btn-sm btn-outline-primary">View</a>
-                                                <a href="{{ route('sales.receipt', $sale) }}" target="_blank" class="btn btn-sm btn-outline-dark">Print</a>
+                                                <a href="{{ route('sales.show', $sale) }}"
+                                                    class="btn btn-datatable btn-icon btn-transparent-dark me-2"
+                                                    title="View Invoice">
+                                                    <i data-feather="eye"></i>
+                                                </a>
+                                                <a href="{{ route('sales.receipt', $sale) }}" target="_blank"
+                                                    class="btn btn-datatable btn-icon btn-transparent-dark"
+                                                    title="Print Receipt">
+                                                    <i data-feather="printer"></i>
+                                                </a>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -557,14 +565,19 @@
                             <td>${formatMoney(sale.due_amount)}</td>
                             <td>${sale.sold_at}</td>
                             <td>
-                                <a href="${sale.view_url}" class="btn btn-sm btn-outline-primary">View</a>
-                                <a href="${sale.receipt_url}" target="_blank" class="btn btn-sm btn-outline-dark">Print</a>
+                                <a href="${sale.view_url}" class="btn btn-datatable btn-icon btn-transparent-dark me-2" title="View Invoice">
+                                    <i data-feather="eye"></i>
+                                </a>
+                                <a href="${sale.receipt_url}" target="_blank" class="btn btn-datatable btn-icon btn-transparent-dark" title="Print Receipt">
+                                    <i data-feather="printer"></i>
+                                </a>
                             </td>
                         </tr>
                     `;
                 });
 
                 $('#historyTableBody').html(html || '<tr><td colspan="8" class="text-center text-muted py-4">No transactions found</td></tr>');
+                feather.replace();
             }
 
             function refreshHistory(search) {
