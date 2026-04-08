@@ -21,8 +21,8 @@
         </div>
     </header>
 
-    <div class="container-xl px-4 mt-n10">
-        <div class="row gx-4 pt-2" id="inventorySummary">
+    <div class="container-xl px-4 mt-4">
+        <div class="row gx-4" id="inventorySummary">
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card border-start-lg border-start-primary h-100">
                     <div class="card-body">
@@ -58,7 +58,7 @@
 
         </div>
 
-        <div class="card mb-4 mt-2">
+        <div class="card mb-4">
             <div class="card-header">Stock Overview</div>
             <div class="card-body" id="stockLevelsTableWrapper">
                 <table class="table table-bordered align-middle mb-0" id="stockLevelsTable">
