@@ -13,4 +13,14 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    public function stock()
+    {
+        return $this->hasOne(Stock::class);
+    }
+
+    public function movements()
+    {
+        return $this->hasMany(StockMovement::class);
+    }
 }
