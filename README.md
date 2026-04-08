@@ -1,5 +1,7 @@
 # POS System
 
+<img src="/public/assets/images/dashboard.png" alt="POS System">
+
 A professional Laravel-based Point of Sale and business management system for retail operations. The application combines POS checkout, inventory control, procurement, customer management, reporting, notifications, audit logging, and an admin dashboard in a single back-office workflow.
 
 ## Overview
