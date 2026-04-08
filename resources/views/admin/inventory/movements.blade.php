@@ -25,7 +25,7 @@
         <div class="card mb-4">
             <div class="card-header">Filters</div>
             <div class="card-body">
-                <form method="GET" class="row g-3">
+                <form id="movementFilterForm" class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label">Type</label>
                         <select name="type" class="form-control">
@@ -47,16 +47,19 @@
                     </div>
                     <div class="col-md-4 d-flex align-items-end gap-2">
                         <button type="submit" class="btn btn-primary">Apply</button>
-                        <a href="{{ route('inventory.movements') }}" class="btn btn-outline-secondary">Reset</a>
+                        <button type="button" id="resetMovementFilters" class="btn btn-outline-secondary">Reset</button>
                     </div>
                 </form>
             </div>
         </div>
 
         <div class="card mb-4">
-            <div class="card-header">Movement Logs</div>
-            <div class="card-body table-responsive">
-                <table class="table table-bordered align-middle">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Movement Logs</span>
+                <span class="small text-muted" id="movementPaginationSummary"></span>
+            </div>
+            <div class="card-body" id="movementTableWrapper">
+                <table class="table table-bordered align-middle mb-0">
                     <thead>
                         <tr>
                             <th>Date</th>
@@ -68,30 +71,190 @@
                             <th>By</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @forelse ($movements as $movement)
-                            <tr>
-                                <td>{{ $movement->created_at?->format('d M Y, h:i A') }}</td>
-                                <td>{{ $movement->product?->name }}</td>
-                                <td>
-                                    <span class="badge {{ $movement->type === 'in' ? 'bg-success' : 'bg-danger' }}">
-                                        {{ strtoupper($movement->type) }}
-                                    </span>
-                                </td>
-                                <td>{{ $movement->quantity }}</td>
-                                <td>{{ $movement->reference ?: '-' }}</td>
-                                <td>{{ $movement->note ?: '-' }}</td>
-                                <td>{{ $movement->user?->name ?: 'System' }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="text-center">No stock movement found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
+                    <tbody></tbody>
                 </table>
-                {{ $movements->links() }}
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <button type="button" class="btn btn-outline-primary btn-sm" id="movementPrevBtn">Previous</button>
+                <span class="small text-muted" id="movementPageLabel"></span>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="movementNextBtn">Next</button>
             </div>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const movementFilterForm = document.getElementById('movementFilterForm');
+            const resetMovementFilters = document.getElementById('resetMovementFilters');
+            const movementTableWrapper = document.getElementById('movementTableWrapper');
+            const movementPrevBtn = document.getElementById('movementPrevBtn');
+            const movementNextBtn = document.getElementById('movementNextBtn');
+            const movementPageLabel = document.getElementById('movementPageLabel');
+            const movementPaginationSummary = document.getElementById('movementPaginationSummary');
+
+            const routes = {
+                index: '{{ route('inventory.movements') }}',
+            };
+
+            let currentPage = 1;
+            let lastPage = 1;
+
+            function getQueryString(page = 1) {
+                const formData = new FormData(movementFilterForm);
+                const params = new URLSearchParams();
+
+                if (formData.get('type')) {
+                    params.append('type', formData.get('type'));
+                }
+
+                if (formData.get('product_id')) {
+                    params.append('product_id', formData.get('product_id'));
+                }
+
+                params.append('page', page);
+
+                return params.toString();
+            }
+
+            function formatDate(dateString) {
+                if (!dateString) {
+                    return '-';
+                }
+
+                return new Date(dateString).toLocaleString();
+            }
+
+            function getTableMarkup(movements) {
+                return `
+                    <table class="table table-bordered align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Product</th>
+                                <th>Type</th>
+                                <th>Quantity</th>
+                                <th>Reference</th>
+                                <th>Note</th>
+                                <th>By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${movements.length ? movements.map((movement) => `
+                                <tr>
+                                    <td>${formatDate(movement.created_at)}</td>
+                                    <td>${movement.product?.name ?? '-'}</td>
+                                    <td>
+                                        <span class="badge ${movement.type === 'in' ? 'bg-success' : 'bg-danger'}">
+                                            ${(movement.type ?? '').toUpperCase()}
+                                        </span>
+                                    </td>
+                                    <td>${movement.quantity ?? 0}</td>
+                                    <td>${movement.reference ?? '-'}</td>
+                                    <td>${movement.note ?? '-'}</td>
+                                    <td>${movement.user?.name ?? 'System'}</td>
+                                </tr>
+                            `).join('') : `
+                                <tr>
+                                    <td colspan="7" class="text-center">No stock movement found.</td>
+                                </tr>
+                            `}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            function updatePagination(pagination) {
+                currentPage = pagination.current_page || 1;
+                lastPage = pagination.last_page || 1;
+
+                movementPrevBtn.disabled = currentPage <= 1;
+                movementNextBtn.disabled = currentPage >= lastPage;
+                movementPageLabel.textContent = `Page ${currentPage} of ${lastPage}`;
+
+                if (pagination.total) {
+                    movementPaginationSummary.textContent =
+                        `Showing ${pagination.from ?? 0}-${pagination.to ?? 0} of ${pagination.total}`;
+                } else {
+                    movementPaginationSummary.textContent = 'No movement records';
+                }
+            }
+
+            async function loadMovements(page = 1) {
+                const response = await fetch(`${routes.index}?${getQueryString(page)}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load stock movements');
+                }
+
+                const payload = await response.json();
+                movementTableWrapper.innerHTML = getTableMarkup(payload.data || []);
+                updatePagination(payload.pagination || {});
+
+                const url = new URL(window.location.href);
+                url.search = getQueryString(currentPage);
+                window.history.replaceState({}, '', url);
+            }
+
+            movementFilterForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                try {
+                    await loadMovements(1);
+                } catch (error) {
+                    Swal.fire('Error', 'Failed to apply filters', 'error');
+                }
+            });
+
+            resetMovementFilters.addEventListener('click', async function() {
+                movementFilterForm.reset();
+
+                try {
+                    await loadMovements(1);
+                } catch (error) {
+                    Swal.fire('Error', 'Failed to reset filters', 'error');
+                }
+            });
+
+            movementPrevBtn.addEventListener('click', async function() {
+                if (currentPage <= 1) {
+                    return;
+                }
+
+                try {
+                    await loadMovements(currentPage - 1);
+                } catch (error) {
+                    Swal.fire('Error', 'Failed to load previous page', 'error');
+                }
+            });
+
+            movementNextBtn.addEventListener('click', async function() {
+                if (currentPage >= lastPage) {
+                    return;
+                }
+
+                try {
+                    await loadMovements(currentPage + 1);
+                } catch (error) {
+                    Swal.fire('Error', 'Failed to load next page', 'error');
+                }
+            });
+
+            document.addEventListener('inventory:refresh', function() {
+                loadMovements(currentPage).catch(() => {
+                    Swal.fire('Error', 'Failed to refresh movement logs', 'error');
+                });
+            });
+
+            loadMovements({{ request('page', 1) }}).catch(() => {
+                Swal.fire('Error', 'Failed to load stock movements', 'error');
+            });
+        });
+    </script>
 @endsection

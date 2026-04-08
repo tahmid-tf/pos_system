@@ -7,9 +7,13 @@ use Illuminate\Http\Request;
 
 class SupplierController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $suppliers = Supplier::latest()->paginate(15);
+        $suppliers = Supplier::latest()->get();
+
+        if ($request->ajax()) {
+            return response()->json($suppliers);
+        }
 
         return view('admin.suppliers.index', compact('suppliers'));
     }
@@ -24,13 +28,21 @@ class SupplierController extends Controller
             'address' => 'nullable|string',
         ]);
 
-        Supplier::create($request->only([
+        $supplier = Supplier::create($request->only([
             'name',
             'contact_person',
             'email',
             'phone',
             'address',
         ]));
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Supplier created successfully.',
+                'supplier' => $supplier,
+            ]);
+        }
 
         return back()->with('success', 'Supplier created successfully.');
     }
@@ -55,12 +67,26 @@ class SupplierController extends Controller
             'is_active' => (bool) $request->is_active,
         ]);
 
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Supplier updated successfully.',
+            ]);
+        }
+
         return back()->with('success', 'Supplier updated successfully.');
     }
 
-    public function destroy(Supplier $supplier)
+    public function destroy(Request $request, Supplier $supplier)
     {
         $supplier->delete();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Supplier deleted successfully.',
+            ]);
+        }
 
         return back()->with('success', 'Supplier deleted successfully.');
     }

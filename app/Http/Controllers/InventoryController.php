@@ -32,6 +32,13 @@ class InventoryController extends Controller
             'locked_items' => $products->where('inventory_locked', true)->count(),
         ];
 
+        if (request()->ajax()) {
+            return response()->json([
+                'products' => $products,
+                'summary' => $summary,
+            ]);
+        }
+
         return view('admin.inventory.stock-levels', compact('products', 'summary'));
     }
 
@@ -49,6 +56,20 @@ class InventoryController extends Controller
 
         $movements = $query->paginate(20)->withQueryString();
         $products = Product::orderBy('name')->get(['id', 'name']);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'data' => $movements->items(),
+                'pagination' => [
+                    'current_page' => $movements->currentPage(),
+                    'last_page' => $movements->lastPage(),
+                    'per_page' => $movements->perPage(),
+                    'total' => $movements->total(),
+                    'from' => $movements->firstItem(),
+                    'to' => $movements->lastItem(),
+                ],
+            ]);
+        }
 
         return view('admin.inventory.movements', compact('movements', 'products'));
     }
@@ -71,11 +92,18 @@ class InventoryController extends Controller
         return view('admin.inventory.alerts', compact('products'));
     }
 
-    public function toggleLock(Product $product)
+    public function toggleLock(Request $request, Product $product)
     {
         $product->update([
             'inventory_locked' => !$product->inventory_locked,
         ]);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Inventory lock updated successfully.',
+            ]);
+        }
 
         return back()->with('success', 'Inventory lock updated successfully.');
     }
@@ -89,6 +117,13 @@ class InventoryController extends Controller
         $product->update([
             'low_stock_threshold' => $request->low_stock_threshold,
         ]);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Low stock threshold updated successfully.',
+            ]);
+        }
 
         return back()->with('success', 'Low stock threshold updated successfully.');
     }

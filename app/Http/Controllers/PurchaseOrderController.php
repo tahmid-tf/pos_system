@@ -17,9 +17,13 @@ class PurchaseOrderController extends Controller
     {
         $purchaseOrders = PurchaseOrder::with(['supplier', 'items.product'])
             ->latest()
-            ->paginate(10);
+            ->get();
         $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
         $products = Product::where('status', true)->orderBy('name')->get();
+
+        if (request()->ajax()) {
+            return response()->json($purchaseOrders);
+        }
 
         return view('admin.purchase-orders.index', compact('purchaseOrders', 'suppliers', 'products'));
     }
@@ -36,7 +40,7 @@ class PurchaseOrderController extends Controller
             'items.*.unit_cost' => 'required|numeric|min:0',
         ]);
 
-        DB::transaction(function () use ($request) {
+        $purchaseOrder = DB::transaction(function () use ($request) {
             $po = PurchaseOrder::create([
                 'po_number' => $this->generatePoNumber(),
                 'supplier_id' => $request->supplier_id,
@@ -62,14 +66,31 @@ class PurchaseOrderController extends Controller
             }
 
             $po->update(['total_amount' => $totalAmount]);
+
+            return $po;
         });
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Purchase order created successfully.',
+                'purchase_order_id' => $purchaseOrder->id,
+            ]);
+        }
 
         return back()->with('success', 'Purchase order created successfully.');
     }
 
-    public function receive(PurchaseOrder $purchaseOrder)
+    public function receive(Request $request, PurchaseOrder $purchaseOrder)
     {
         if ($purchaseOrder->status !== 'pending') {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only pending purchase orders can be received.',
+                ], 422);
+            }
+
             return back()->with('error', 'Only pending purchase orders can be received.');
         }
 
@@ -107,16 +128,37 @@ class PurchaseOrderController extends Controller
             ]);
         });
 
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Purchase order received and stock updated.',
+            ]);
+        }
+
         return back()->with('success', 'Purchase order received and stock updated.');
     }
 
-    public function cancel(PurchaseOrder $purchaseOrder)
+    public function cancel(Request $request, PurchaseOrder $purchaseOrder)
     {
         if ($purchaseOrder->status !== 'pending') {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only pending purchase orders can be cancelled.',
+                ], 422);
+            }
+
             return back()->with('error', 'Only pending purchase orders can be cancelled.');
         }
 
         $purchaseOrder->update(['status' => 'cancelled']);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Purchase order cancelled.',
+            ]);
+        }
 
         return back()->with('success', 'Purchase order cancelled.');
     }
