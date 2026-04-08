@@ -27,6 +27,10 @@
     <div class="nav-link-icon"><i data-feather="shopping-cart"></i></div>
     POS Terminal
 </a>
+<a class="nav-link" href="{{ route('customers.index') }}">
+    <div class="nav-link-icon"><i data-feather="users"></i></div>
+    Customers
+</a>
 
 <div class="sidenav-menu-heading">Procurement</div>
 <a class="nav-link" href="{{ route('suppliers.index') }}">

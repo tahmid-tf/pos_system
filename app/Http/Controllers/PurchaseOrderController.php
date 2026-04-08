@@ -7,25 +7,33 @@ use App\Models\PurchaseOrder;
 use App\Models\Stock;
 use App\Models\StockMovement;
 use App\Models\Supplier;
+use App\Models\SupplierPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class PurchaseOrderController extends Controller
 {
     public function index()
     {
-        $purchaseOrders = PurchaseOrder::with(['supplier', 'items.product'])
+        $purchaseOrders = PurchaseOrder::with(['supplier', 'items.product', 'payments'])
             ->latest()
             ->get();
         $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
         $products = Product::where('status', true)->orderBy('name')->get();
+        $recentPayments = SupplierPayment::with(['supplier', 'purchaseOrder'])
+            ->latest('paid_at')
+            ->limit(20)
+            ->get();
 
         if (request()->ajax()) {
-            return response()->json($purchaseOrders);
+            return response()->json(
+                $purchaseOrders->map(fn ($purchaseOrder) => $this->transformPurchaseOrder($purchaseOrder))
+            );
         }
 
-        return view('admin.purchase-orders.index', compact('purchaseOrders', 'suppliers', 'products'));
+        return view('admin.purchase-orders.index', compact('purchaseOrders', 'suppliers', 'products', 'recentPayments'));
     }
 
     public function store(Request $request)
@@ -65,7 +73,10 @@ class PurchaseOrderController extends Controller
                 ]);
             }
 
-            $po->update(['total_amount' => $totalAmount]);
+            $po->update([
+                'total_amount' => $totalAmount,
+                'due_amount' => $totalAmount,
+            ]);
 
             return $po;
         });
@@ -74,11 +85,74 @@ class PurchaseOrderController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Purchase order created successfully.',
-                'purchase_order_id' => $purchaseOrder->id,
+                'purchase_order' => $this->transformPurchaseOrder(
+                    $purchaseOrder->load(['supplier', 'items.product', 'payments'])
+                ),
             ]);
         }
 
         return back()->with('success', 'Purchase order created successfully.');
+    }
+
+    public function pay(Request $request, PurchaseOrder $purchaseOrder)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'method' => ['required', Rule::in(['cash', 'bank', 'mobile', 'cheque'])],
+            'reference' => 'nullable|string|max:255',
+            'note' => 'nullable|string|max:500',
+            'paid_at' => 'nullable|date',
+        ]);
+
+        if ($purchaseOrder->status === 'cancelled') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cancelled purchase orders cannot receive payments.',
+            ], 422);
+        }
+
+        $payment = DB::transaction(function () use ($request, $purchaseOrder) {
+            $purchaseOrder = PurchaseOrder::whereKey($purchaseOrder->id)->lockForUpdate()->firstOrFail();
+            $remainingDue = round((float) $purchaseOrder->due_amount, 2);
+            $amount = round((float) $request->amount, 2);
+
+            if ($amount > $remainingDue) {
+                abort(422, 'Payment amount cannot exceed the outstanding balance.');
+            }
+
+            $payment = SupplierPayment::create([
+                'supplier_id' => $purchaseOrder->supplier_id,
+                'purchase_order_id' => $purchaseOrder->id,
+                'method' => $request->method,
+                'amount' => $amount,
+                'reference' => $request->reference,
+                'note' => $request->note,
+                'paid_at' => $request->paid_at ?: now(),
+                'created_by' => auth()->id(),
+            ]);
+
+            $updatedPaidAmount = round((float) $purchaseOrder->paid_amount + $amount, 2);
+            $purchaseOrder->update([
+                'paid_amount' => $updatedPaidAmount,
+                'due_amount' => round(max((float) $purchaseOrder->total_amount - $updatedPaidAmount, 0), 2),
+            ]);
+
+            return $payment;
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Supplier payment recorded successfully.',
+            'payment' => [
+                'id' => $payment->id,
+                'amount' => (float) $payment->amount,
+                'method' => $payment->method,
+                'paid_at' => optional($payment->paid_at)->format('Y-m-d H:i:s'),
+            ],
+            'purchase_order' => $this->transformPurchaseOrder(
+                $purchaseOrder->fresh()->load(['supplier', 'items.product', 'payments'])
+            ),
+        ]);
     }
 
     public function receive(Request $request, PurchaseOrder $purchaseOrder)
@@ -166,5 +240,41 @@ class PurchaseOrderController extends Controller
     private function generatePoNumber(): string
     {
         return 'PO-' . now()->format('Ymd-His') . '-' . Str::upper(Str::random(4));
+    }
+
+    private function transformPurchaseOrder(PurchaseOrder $purchaseOrder): array
+    {
+        return [
+            'id' => $purchaseOrder->id,
+            'po_number' => $purchaseOrder->po_number,
+            'status' => $purchaseOrder->status,
+            'supplier' => $purchaseOrder->supplier ? [
+                'id' => $purchaseOrder->supplier->id,
+                'name' => $purchaseOrder->supplier->name,
+            ] : null,
+            'total_amount' => (float) $purchaseOrder->total_amount,
+            'paid_amount' => (float) $purchaseOrder->paid_amount,
+            'due_amount' => (float) $purchaseOrder->due_amount,
+            'ordered_at' => optional($purchaseOrder->ordered_at)->format('Y-m-d H:i:s'),
+            'expected_at' => optional($purchaseOrder->expected_at)->format('Y-m-d H:i:s'),
+            'received_at' => optional($purchaseOrder->received_at)->format('Y-m-d H:i:s'),
+            'note' => $purchaseOrder->note,
+            'items' => $purchaseOrder->items->map(function ($item) {
+                return [
+                    'product_name' => $item->product?->name,
+                    'quantity' => (int) $item->quantity,
+                    'unit_cost' => (float) $item->unit_cost,
+                    'line_total' => (float) $item->line_total,
+                ];
+            })->values(),
+            'payments' => $purchaseOrder->payments->map(function ($payment) {
+                return [
+                    'amount' => (float) $payment->amount,
+                    'method' => $payment->method,
+                    'reference' => $payment->reference,
+                    'paid_at' => optional($payment->paid_at)->format('Y-m-d H:i:s'),
+                ];
+            })->values(),
+        ];
     }
 }

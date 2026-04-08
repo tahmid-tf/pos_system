@@ -10,6 +10,12 @@ class Customer extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'is_active' => 'boolean',
+        'total_spent' => 'decimal:2',
+        'last_purchase_at' => 'datetime',
+    ];
+
     public function sales()
     {
         return $this->hasMany(Sale::class);

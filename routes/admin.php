@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\ProductController;
@@ -38,9 +39,18 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/delete/{supplier}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
     });
 
+    Route::prefix('customers')->group(function () {
+        Route::get('/', [CustomerController::class, 'index'])->name('customers.index');
+        Route::post('/store', [CustomerController::class, 'store'])->name('customers.store');
+        Route::get('/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+        Route::post('/update/{customer}', [CustomerController::class, 'update'])->name('customers.update');
+        Route::delete('/delete/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+    });
+
     Route::prefix('purchase-orders')->group(function () {
         Route::get('/', [PurchaseOrderController::class, 'index'])->name('purchaseOrders.index');
         Route::post('/store', [PurchaseOrderController::class, 'store'])->name('purchaseOrders.store');
+        Route::post('/pay/{purchaseOrder}', [PurchaseOrderController::class, 'pay'])->name('purchaseOrders.pay');
         Route::post('/receive/{purchaseOrder}', [PurchaseOrderController::class, 'receive'])->name('purchaseOrders.receive');
         Route::post('/cancel/{purchaseOrder}', [PurchaseOrderController::class, 'cancel'])->name('purchaseOrders.cancel');
     });

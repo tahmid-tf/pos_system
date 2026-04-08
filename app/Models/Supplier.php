@@ -11,8 +11,17 @@ class Supplier extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
     public function purchaseOrders()
     {
         return $this->hasMany(PurchaseOrder::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(SupplierPayment::class);
     }
 }

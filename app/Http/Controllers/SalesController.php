@@ -24,7 +24,7 @@ class SalesController extends Controller
             ->orderBy('name')
             ->get();
 
-        $customers = Customer::orderBy('name')->get();
+        $customers = Customer::where('is_active', true)->orderBy('name')->get();
 
         $promotions = Promotion::query()
             ->where('is_active', true)
@@ -70,9 +70,17 @@ class SalesController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:255',
+            'loyalty_points' => 'nullable|integer|min:0',
         ]);
 
-        $customer = Customer::create($request->only(['name', 'email', 'phone', 'address']));
+        $customer = Customer::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'address' => $request->address,
+            'loyalty_points' => $request->loyalty_points ?? 0,
+            'is_active' => true,
+        ]);
 
         return response()->json([
             'success' => true,
@@ -282,6 +290,20 @@ class SalesController extends Controller
                     'note' => $payment['note'] ?? null,
                     'paid_at' => now(),
                 ]);
+            }
+
+            if ($sale->customer_id) {
+                $customer = Customer::whereKey($sale->customer_id)->lockForUpdate()->first();
+
+                if ($customer) {
+                    $earnedPoints = (int) floor($grandTotal / 100);
+
+                    $customer->update([
+                        'total_spent' => round((float) $customer->total_spent + $grandTotal, 2),
+                        'loyalty_points' => (int) $customer->loyalty_points + $earnedPoints,
+                        'last_purchase_at' => $sale->sold_at,
+                    ]);
+                }
             }
 
             return $sale->load(['customer', 'promotion', 'items', 'payments']);
