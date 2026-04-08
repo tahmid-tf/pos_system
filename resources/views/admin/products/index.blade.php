@@ -10,20 +10,20 @@
                             <div class="page-header-icon">
                                 <i data-feather="activity"></i>
                             </div>
-                            Dashboard
+                            Products
                         </h1>
                         <div class="page-header-subtitle">
-                            Example dashboard overview and content summary
+                            Manage your product from one clean, searchable list
                         </div>
                     </div>
 
-                    <div class="col-12 col-xl-auto mt-4">
+                    {{-- <div class="col-12 col-xl-auto mt-4">
                         <div class="input-group input-group-joined border-0" style="width: 16.5rem">
                             <span class="input-group-text"><i class="text-primary" data-feather="calendar"></i></span>
                             <input class="form-control ps-0 pointer" id="litepickerRangePlugin"
                                 placeholder="Select date range..." />
                         </div>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
         </div>
@@ -259,31 +259,31 @@
                         </thead>
                         <tbody>
                             ${products.map((product) => `
-                                    <tr>
-                                        <td>${product.id}</td>
-                                        <td>${product.image ? `<img src="/storage/${product.image}" width="50" class="img-fluid rounded">` : 'No Image'}</td>
-                                        <td>${product.name ?? ''}</td>
-                                        <td>${product.sku ?? ''}</td>
-                                        <td>${product.category?.name ?? ''}</td>
-                                        <td>${product.price ?? ''}</td>
-                                        <td>${product.stock ?? ''}</td>
-                                        <td>${product.status ? 'Active' : 'Inactive'}</td>
-                                        <td>
-                                            <button class="btn btn-datatable btn-icon btn-transparent-dark me-2 editBtn" data-id="${product.id}" type="button">
-                                                <i data-feather="edit"></i>
-                                            </button>
-                                            <button class="btn btn-datatable btn-icon btn-transparent-dark deleteBtn" data-id="${product.id}" type="button">
-                                                <i data-feather="trash-2"></i>
-                                            </button>
-                                            <button class="btn btn-datatable btn-icon btn-transparent-dark me-2 add-stock-btn" data-id="${product.id}" type="button" title="Add Stock">
-                                                <i data-feather="plus-circle"></i>
-                                            </button>
-                                            <button class="btn btn-datatable btn-icon btn-transparent-dark deduct-stock-btn" data-id="${product.id}" type="button" title="Deduct Stock">
-                                                <i data-feather="minus-circle"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                `).join('')}
+                                                <tr>
+                                                    <td>${product.id}</td>
+                                                    <td>${product.image ? `<img src="/storage/${product.image}" width="50" class="img-fluid rounded">` : 'No Image'}</td>
+                                                    <td>${product.name ?? ''}</td>
+                                                    <td>${product.sku ?? ''}</td>
+                                                    <td>${product.category?.name ?? ''}</td>
+                                                    <td>${product.price ?? ''}</td>
+                                                    <td>${product.stock ?? ''}</td>
+                                                    <td>${product.status ? 'Active' : 'Inactive'}</td>
+                                                    <td>
+                                                        <button class="btn btn-datatable btn-icon btn-transparent-dark me-2 editBtn" data-id="${product.id}" type="button">
+                                                            <i data-feather="edit"></i>
+                                                        </button>
+                                                        <button class="btn btn-datatable btn-icon btn-transparent-dark deleteBtn" data-id="${product.id}" type="button">
+                                                            <i data-feather="trash-2"></i>
+                                                        </button>
+                                                        <button class="btn btn-datatable btn-icon btn-transparent-dark me-2 add-stock-btn" data-id="${product.id}" type="button" title="Add Stock">
+                                                            <i data-feather="plus-circle"></i>
+                                                        </button>
+                                                        <button class="btn btn-datatable btn-icon btn-transparent-dark deduct-stock-btn" data-id="${product.id}" type="button" title="Deduct Stock">
+                                                            <i data-feather="minus-circle"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            `).join('')}
                         </tbody>
                     </table>
                 `;

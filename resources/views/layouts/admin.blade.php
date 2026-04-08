@@ -109,72 +109,29 @@
             <li class="nav-item dropdown no-caret d-none d-sm-block me-3 dropdown-notifications">
                 <a class="btn btn-icon btn-transparent-dark dropdown-toggle" id="navbarDropdownAlerts"
                     href="javascript:void(0);" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
-                    aria-expanded="false"><i data-feather="bell"></i></a>
+                    aria-expanded="false">
+                    <i data-feather="bell"></i>
+                    <span class="badge bg-danger rounded-pill d-none" id="navbarNotificationCount">0</span>
+                </a>
                 <div class="dropdown-menu dropdown-menu-end border-0 shadow animated--fade-in-up"
                     aria-labelledby="navbarDropdownAlerts">
                     <h6 class="dropdown-header dropdown-notifications-header">
                         <i class="me-2" data-feather="bell"></i>
                         Alerts Center
                     </h6>
-                    <!-- Example Alert 1-->
-                    <a class="dropdown-item dropdown-notifications-item" href="#!">
-                        <div class="dropdown-notifications-item-icon bg-warning">
-                            <i data-feather="activity"></i>
-                        </div>
-                        <div class="dropdown-notifications-item-content">
-                            <div class="dropdown-notifications-item-content-details">
-                                December 29, 2021
-                            </div>
-                            <div class="dropdown-notifications-item-content-text">
-                                This is an alert message. It's nothing serious, but it
-                                requires your attention.
-                            </div>
-                        </div>
-                    </a>
-                    <!-- Example Alert 2-->
-                    <a class="dropdown-item dropdown-notifications-item" href="#!">
-                        <div class="dropdown-notifications-item-icon bg-info">
-                            <i data-feather="bar-chart"></i>
-                        </div>
-                        <div class="dropdown-notifications-item-content">
-                            <div class="dropdown-notifications-item-content-details">
-                                December 22, 2021
-                            </div>
-                            <div class="dropdown-notifications-item-content-text">
-                                A new monthly report is ready. Click here to view!
-                            </div>
-                        </div>
-                    </a>
-                    <!-- Example Alert 3-->
-                    <a class="dropdown-item dropdown-notifications-item" href="#!">
-                        <div class="dropdown-notifications-item-icon bg-danger">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                        <div class="dropdown-notifications-item-content">
-                            <div class="dropdown-notifications-item-content-details">
-                                December 8, 2021
-                            </div>
-                            <div class="dropdown-notifications-item-content-text">
-                                Critical system failure, systems shutting down.
-                            </div>
-                        </div>
-                    </a>
-                    <!-- Example Alert 4-->
-                    <a class="dropdown-item dropdown-notifications-item" href="#!">
-                        <div class="dropdown-notifications-item-icon bg-success">
-                            <i data-feather="user-plus"></i>
-                        </div>
-                        <div class="dropdown-notifications-item-content">
-                            <div class="dropdown-notifications-item-content-details">
-                                December 2, 2021
-                            </div>
-                            <div class="dropdown-notifications-item-content-text">
-                                New user request. Woody has requested access to the
-                                organization.
-                            </div>
-                        </div>
-                    </a>
-                    <a class="dropdown-item dropdown-notifications-footer" href="#!">View All Alerts</a>
+                    <div id="navbarNotificationSummary" class="px-3 py-2 border-bottom small text-muted">
+                        Loading alerts...
+                    </div>
+                    <div id="navbarNotificationItems">
+                        <div class="dropdown-item text-center text-muted py-4">Loading notifications...</div>
+                    </div>
+                    <div class="dropdown-divider m-0"></div>
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                        <button class="btn btn-sm btn-outline-primary" type="button" id="markAllNotificationsReadBtn">
+                            Mark all read
+                        </button>
+                        <a class="small" href="{{ route('notifications.index') }}">View all alerts</a>
+                    </div>
                 </div>
             </li>
             <!-- Messages Dropdown-->
@@ -353,6 +310,118 @@
     <script src="{{ asset('js/datatables/datatables-simple-demo.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js" crossorigin="anonymous"></script>
     <script src="{{ asset('js/litepicker.js') }}"></script>
+    <script>
+        $(function() {
+            const notificationRoutes = {
+                feed: '{{ route('notifications.feed') }}',
+                markAllRead: '{{ route('notifications.markAllRead') }}',
+                markReadBase: '{{ url('/notifications') }}'
+            };
+            const csrfToken = '{{ csrf_token() }}';
+
+            function notificationIcon(type) {
+                if (type === 'low_stock') {
+                    return {
+                        icon: 'alert-triangle',
+                        className: 'bg-warning'
+                    };
+                }
+
+                if (type === 'payment_reminder') {
+                    return {
+                        icon: 'credit-card',
+                        className: 'bg-danger'
+                    };
+                }
+
+                return {
+                    icon: 'shopping-cart',
+                    className: 'bg-info'
+                };
+            }
+
+            function updateNotificationCounter(unreadCount) {
+                const badge = $('#navbarNotificationCount');
+                badge.text(unreadCount);
+                badge.toggleClass('d-none', unreadCount <= 0);
+            }
+
+            function renderNotificationSummary(counts) {
+                $('#navbarNotificationSummary').html(`
+                    <div class="d-flex justify-content-between"><span>Low stock</span><strong>${counts.low_stock || 0}</strong></div>
+                    <div class="d-flex justify-content-between"><span>New orders</span><strong>${counts.new_order || 0}</strong></div>
+                    <div class="d-flex justify-content-between"><span>Payment reminders</span><strong>${counts.payment_reminder || 0}</strong></div>
+                `);
+            }
+
+            function renderNotificationItems(items) {
+                let html = '';
+
+                $.each(items, function(_, item) {
+                    const iconMeta = notificationIcon(item.type);
+
+                    html += `
+                        <button class="dropdown-item dropdown-notifications-item navbar-notification-item ${item.is_read ? '' : 'bg-light'}" type="button" data-id="${item.id}">
+                            <div class="dropdown-notifications-item-icon ${iconMeta.className}">
+                                <i data-feather="${iconMeta.icon}"></i>
+                            </div>
+                            <div class="dropdown-notifications-item-content">
+                                <div class="dropdown-notifications-item-content-details">${item.created_at || '-'}</div>
+                                <div class="dropdown-notifications-item-content-text">
+                                    <div class="fw-semibold">${item.title}</div>
+                                    <div>${item.message}</div>
+                                </div>
+                            </div>
+                        </button>
+                    `;
+                });
+
+                $('#navbarNotificationItems').html(
+                    html || '<div class="dropdown-item text-center text-muted py-4">No notifications right now.</div>'
+                );
+                feather.replace();
+            }
+
+            function loadNotifications() {
+                $.get(notificationRoutes.feed).done(function(response) {
+                    updateNotificationCounter(response.unread_count || 0);
+                    renderNotificationSummary(response.counts || {});
+                    renderNotificationItems(response.notifications || []);
+                });
+            }
+
+            $('#markAllNotificationsReadBtn').on('click', function() {
+                $.ajax({
+                    url: notificationRoutes.markAllRead,
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    }
+                }).done(function() {
+                    loadNotifications();
+                });
+            });
+
+            $(document).on('click', '.navbar-notification-item', function() {
+                const notificationId = $(this).data('id');
+
+                $.ajax({
+                    url: `${notificationRoutes.markReadBase}/${notificationId}/read`,
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    }
+                }).always(function() {
+                    loadNotifications();
+                });
+            });
+
+            loadNotifications();
+            window.setInterval(loadNotifications, 60000);
+        });
+    </script>
     @yield('scripts')
 </body>
 

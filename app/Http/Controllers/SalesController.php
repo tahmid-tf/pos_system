@@ -10,7 +10,9 @@ use App\Models\SaleItem;
 use App\Models\SalePayment;
 use App\Models\Stock;
 use App\Models\StockMovement;
+use App\Services\AuditLogService;
 use App\Services\AccountingService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -18,7 +20,11 @@ use Illuminate\Validation\Rule;
 
 class SalesController extends Controller
 {
-    public function __construct(protected AccountingService $accountingService)
+    public function __construct(
+        protected AccountingService $accountingService,
+        protected NotificationService $notificationService,
+        protected AuditLogService $auditLogService
+    )
     {
     }
 
@@ -88,6 +94,15 @@ class SalesController extends Controller
             'is_active' => true,
         ]);
 
+        $this->auditLogService->log(
+            'customers',
+            'created',
+            'Customer "' . $customer->name . '" created.',
+            $customer,
+            [],
+            $customer->only(['name', 'email', 'phone', 'address', 'loyalty_points', 'is_active'])
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Customer created successfully.',
@@ -117,6 +132,15 @@ class SalesController extends Controller
             'ends_at' => $request->ends_at,
             'is_active' => true,
         ]);
+
+        $this->auditLogService->log(
+            'promotions',
+            'created',
+            'Promotion "' . $promotion->name . '" created.',
+            $promotion,
+            [],
+            $promotion->only(['name', 'code', 'type', 'value', 'minimum_order_amount', 'starts_at', 'ends_at', 'is_active'])
+        );
 
         return response()->json([
             'success' => true,
@@ -278,6 +302,7 @@ class SalesController extends Controller
                     ]);
                 }
 
+                $previousQuantity = (int) $stock->quantity;
                 $stock->decrement('quantity', $lineItem['quantity']);
                 $lineItem['product']->decrement('stock', $lineItem['quantity']);
 
@@ -289,6 +314,29 @@ class SalesController extends Controller
                     'note' => 'Sold through POS terminal',
                     'created_by' => auth()->id(),
                 ]);
+
+                $stock->refresh();
+                $lineItem['product']->refresh();
+
+                if ((int) $stock->quantity <= (int) $lineItem['product']->low_stock_threshold) {
+                    $this->notificationService->createLowStockAlert($lineItem['product'], (int) $stock->quantity);
+                } else {
+                    $this->notificationService->resolveLowStockAlert($lineItem['product']);
+                }
+
+                $this->auditLogService->log(
+                    'inventory',
+                    'sale_stock_deducted',
+                    'Stock deducted for "' . $lineItem['product']->name . '" through sale "' . $sale->invoice_number . '".',
+                    $lineItem['product'],
+                    ['stock' => $previousQuantity],
+                    ['stock' => (int) $stock->quantity],
+                    [
+                        'sale_id' => $sale->id,
+                        'invoice_number' => $sale->invoice_number,
+                        'quantity_sold' => (int) $lineItem['quantity'],
+                    ]
+                );
             }
 
             foreach ($payments as $payment) {
@@ -318,6 +366,38 @@ class SalesController extends Controller
 
             $sale->load(['customer', 'promotion', 'items', 'payments']);
             $this->accountingService->recordSale($sale);
+
+            $this->notificationService->createSaleAlert($sale);
+            if ((float) $sale->due_amount > 0) {
+                $this->notificationService->createPaymentReminder(
+                    'sale-due-' . $sale->id,
+                    'Customer payment reminder',
+                    'Outstanding amount of ' . number_format((float) $sale->due_amount, 2)
+                        . ' remains for ' . $sale->invoice_number . '.',
+                    [
+                        'sale_id' => $sale->id,
+                        'invoice_number' => $sale->invoice_number,
+                        'customer_name' => $sale->customer?->name ?? 'Walk-in Customer',
+                        'due_amount' => (float) $sale->due_amount,
+                    ]
+                );
+            }
+
+            $this->auditLogService->log(
+                'sales',
+                'created',
+                'Sale "' . $sale->invoice_number . '" completed.',
+                $sale,
+                [],
+                [
+                    'customer_id' => $sale->customer_id,
+                    'total' => (float) $sale->total,
+                    'paid_amount' => (float) $sale->paid_amount,
+                    'due_amount' => (float) $sale->due_amount,
+                    'status' => $sale->status,
+                    'items_count' => $sale->items->count(),
+                ]
+            );
 
             return $sale;
         });

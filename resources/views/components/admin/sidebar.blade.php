@@ -47,3 +47,11 @@
     <div class="nav-link-icon"><i data-feather="bar-chart-2"></i></div>
     Reports & Accounting
 </a>
+<a class="nav-link" href="{{ route('notifications.index') }}">
+    <div class="nav-link-icon"><i data-feather="bell"></i></div>
+    Notifications
+</a>
+<a class="nav-link" href="{{ route('auditLogs.index') }}">
+    <div class="nav-link-icon"><i data-feather="shield"></i></div>
+    Audit Logs
+</a>

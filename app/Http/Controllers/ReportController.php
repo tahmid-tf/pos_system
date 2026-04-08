@@ -8,6 +8,7 @@ use App\Models\LedgerEntry;
 use App\Models\Product;
 use App\Models\PurchaseOrderItem;
 use App\Models\Sale;
+use App\Services\AuditLogService;
 use App\Services\AccountingService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -19,7 +20,10 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
 {
-    public function __construct(protected AccountingService $accountingService)
+    public function __construct(
+        protected AccountingService $accountingService,
+        protected AuditLogService $auditLogService
+    )
     {
     }
 
@@ -78,6 +82,15 @@ class ReportController extends Controller
             'is_active' => true,
         ]);
 
+        $this->auditLogService->log(
+            'accounting',
+            'ledger_created',
+            'Ledger "' . $ledger->name . '" created.',
+            $ledger,
+            [],
+            $ledger->only(['name', 'code', 'type', 'description', 'is_system', 'is_active'])
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Ledger created successfully.',
@@ -122,6 +135,21 @@ class ReportController extends Controller
                 'description' => $request->description,
             ]);
         });
+
+        $this->auditLogService->log(
+            'accounting',
+            'manual_transaction_created',
+            ucfirst($request->transaction_type) . ' transaction recorded.',
+            null,
+            [],
+            [
+                'transaction_type' => $request->transaction_type,
+                'ledger_id' => (int) $request->ledger_id,
+                'amount' => (float) $request->amount,
+                'entry_date' => $request->entry_date,
+                'reference' => $request->reference,
+            ]
+        );
 
         return response()->json([
             'success' => true,

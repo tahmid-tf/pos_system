@@ -3,6 +3,8 @@
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportController;
@@ -83,6 +85,19 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/ledgers/store', [ReportController::class, 'storeLedger'])->name('reports.ledgers.store');
         Route::post('/transactions/store', [ReportController::class, 'storeTransaction'])
             ->name('reports.transactions.store');
+    });
+
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::get('/feed', [NotificationController::class, 'feed'])->name('notifications.feed');
+        Route::get('/list', [NotificationController::class, 'list'])->name('notifications.list');
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
+        Route::post('/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.markRead');
+    });
+
+    Route::prefix('audit-logs')->group(function () {
+        Route::get('/', [AuditLogController::class, 'index'])->name('auditLogs.index');
+        Route::get('/list', [AuditLogController::class, 'list'])->name('auditLogs.list');
     });
 
 });

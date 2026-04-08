@@ -4,11 +4,19 @@ namespace App\Http\Controllers;
 use App\Models\Stock;
 use App\Models\StockMovement;
 use App\Models\Product;
+use App\Services\AuditLogService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class InventoryController extends Controller
 {
+    public function __construct(
+        protected NotificationService $notificationService,
+        protected AuditLogService $auditLogService
+    ) {
+    }
+
     public function stockLevels()
     {
         $products = Product::query()
@@ -89,14 +97,28 @@ class InventoryController extends Controller
             ->orderByRaw('COALESCE(stocks.quantity, products.stock) ASC')
             ->get();
 
+        if (request()->ajax()) {
+            return response()->json($products);
+        }
+
         return view('admin.inventory.alerts', compact('products'));
     }
 
     public function toggleLock(Request $request, Product $product)
     {
+        $oldValues = ['inventory_locked' => (bool) $product->inventory_locked];
         $product->update([
             'inventory_locked' => !$product->inventory_locked,
         ]);
+
+        $this->auditLogService->log(
+            'inventory',
+            'lock_toggled',
+            'Inventory lock updated for "' . $product->name . '".',
+            $product,
+            $oldValues,
+            ['inventory_locked' => (bool) $product->inventory_locked]
+        );
 
         if ($request->ajax()) {
             return response()->json([
@@ -114,9 +136,27 @@ class InventoryController extends Controller
             'low_stock_threshold' => 'required|integer|min:0',
         ]);
 
+        $oldValues = ['low_stock_threshold' => (int) $product->low_stock_threshold];
         $product->update([
             'low_stock_threshold' => $request->low_stock_threshold,
         ]);
+
+        $currentStock = (int) ($product->stockRecord?->quantity ?? $product->stock);
+
+        if ($currentStock <= (int) $product->low_stock_threshold) {
+            $this->notificationService->createLowStockAlert($product, $currentStock);
+        } else {
+            $this->notificationService->resolveLowStockAlert($product);
+        }
+
+        $this->auditLogService->log(
+            'inventory',
+            'threshold_updated',
+            'Low stock threshold updated for "' . $product->name . '".',
+            $product,
+            $oldValues,
+            ['low_stock_threshold' => (int) $product->low_stock_threshold]
+        );
 
         if ($request->ajax()) {
             return response()->json([
@@ -139,6 +179,7 @@ class InventoryController extends Controller
             DB::transaction(function () use ($request) {
                 $product = Product::whereKey($request->product_id)->lockForUpdate()->firstOrFail();
                 $stock = Stock::where('product_id', $request->product_id)->lockForUpdate()->first();
+                $previousQuantity = (int) ($stock?->quantity ?? $product->stock);
 
                 if (!$stock) {
                     $stock = Stock::create([
@@ -159,6 +200,28 @@ class InventoryController extends Controller
                     'note'       => $request->note,
                     'created_by' => auth()->id(),
                 ]);
+
+                $stock->refresh();
+
+                if ((int) $stock->quantity <= (int) $product->low_stock_threshold) {
+                    $this->notificationService->createLowStockAlert($product->fresh(), (int) $stock->quantity);
+                } else {
+                    $this->notificationService->resolveLowStockAlert($product->fresh());
+                }
+
+                $this->auditLogService->log(
+                    'inventory',
+                    'stock_added',
+                    'Stock added for "' . $product->name . '".',
+                    $product,
+                    ['stock' => $previousQuantity],
+                    ['stock' => (int) $stock->quantity],
+                    [
+                        'quantity_added' => (int) $request->quantity,
+                        'reference' => $request->reference,
+                        'note' => $request->note,
+                    ]
+                );
             });
 
             return response()->json([
@@ -185,6 +248,7 @@ class InventoryController extends Controller
             DB::transaction(function () use ($request) {
                 $product = Product::whereKey($request->product_id)->lockForUpdate()->firstOrFail();
                 $stock = Stock::where('product_id', $request->product_id)->lockForUpdate()->first();
+                $previousQuantity = (int) ($stock?->quantity ?? $product->stock);
 
                 if (!$stock) {
                     $stock = Stock::create([
@@ -209,6 +273,29 @@ class InventoryController extends Controller
                     'note'       => $request->note,
                     'created_by' => auth()->id(),
                 ]);
+
+                $stock->refresh();
+                $product->refresh();
+
+                if ((int) $stock->quantity <= (int) $product->low_stock_threshold) {
+                    $this->notificationService->createLowStockAlert($product, (int) $stock->quantity);
+                } else {
+                    $this->notificationService->resolveLowStockAlert($product);
+                }
+
+                $this->auditLogService->log(
+                    'inventory',
+                    'stock_deducted',
+                    'Stock deducted for "' . $product->name . '".',
+                    $product,
+                    ['stock' => $previousQuantity],
+                    ['stock' => (int) $stock->quantity],
+                    [
+                        'quantity_deducted' => (int) $request->quantity,
+                        'reference' => $request->reference,
+                        'note' => $request->note,
+                    ]
+                );
             });
 
             return response()->json([

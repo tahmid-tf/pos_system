@@ -8,7 +8,9 @@ use App\Models\Stock;
 use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Models\SupplierPayment;
+use App\Services\AuditLogService;
 use App\Services\AccountingService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -16,8 +18,11 @@ use Illuminate\Validation\Rule;
 
 class PurchaseOrderController extends Controller
 {
-    public function __construct(protected AccountingService $accountingService)
-    {
+    public function __construct(
+        protected AccountingService $accountingService,
+        protected NotificationService $notificationService,
+        protected AuditLogService $auditLogService
+    ) {
     }
 
     public function index()
@@ -86,13 +91,43 @@ class PurchaseOrderController extends Controller
             return $po;
         });
 
+        $purchaseOrder->load(['supplier', 'items.product', 'payments']);
+
+        $this->notificationService->createPurchaseOrderAlert($purchaseOrder);
+        if ((float) $purchaseOrder->due_amount > 0) {
+            $this->notificationService->createPaymentReminder(
+                'purchase-order-due-' . $purchaseOrder->id,
+                'Supplier payment reminder',
+                'Outstanding payment of ' . number_format((float) $purchaseOrder->due_amount, 2)
+                    . ' remains for ' . $purchaseOrder->po_number . '.',
+                [
+                    'purchase_order_id' => $purchaseOrder->id,
+                    'po_number' => $purchaseOrder->po_number,
+                    'supplier_name' => $purchaseOrder->supplier?->name,
+                    'due_amount' => (float) $purchaseOrder->due_amount,
+                ]
+            );
+        }
+
+        $this->auditLogService->log(
+            'purchase_orders',
+            'created',
+            'Purchase order "' . $purchaseOrder->po_number . '" created.',
+            $purchaseOrder,
+            [],
+            [
+                'supplier_id' => $purchaseOrder->supplier_id,
+                'total_amount' => (float) $purchaseOrder->total_amount,
+                'due_amount' => (float) $purchaseOrder->due_amount,
+                'items_count' => $purchaseOrder->items->count(),
+            ]
+        );
+
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Purchase order created successfully.',
-                'purchase_order' => $this->transformPurchaseOrder(
-                    $purchaseOrder->load(['supplier', 'items.product', 'payments'])
-                ),
+                'purchase_order' => $this->transformPurchaseOrder($purchaseOrder),
             ]);
         }
 
@@ -118,6 +153,10 @@ class PurchaseOrderController extends Controller
 
         $payment = DB::transaction(function () use ($request, $purchaseOrder) {
             $purchaseOrder = PurchaseOrder::whereKey($purchaseOrder->id)->lockForUpdate()->firstOrFail();
+            $oldValues = [
+                'paid_amount' => (float) $purchaseOrder->paid_amount,
+                'due_amount' => (float) $purchaseOrder->due_amount,
+            ];
             $remainingDue = round((float) $purchaseOrder->due_amount, 2);
             $amount = round((float) $request->amount, 2);
 
@@ -144,6 +183,42 @@ class PurchaseOrderController extends Controller
 
             $payment->load('purchaseOrder');
             $this->accountingService->recordSupplierPayment($payment);
+
+            $purchaseOrder->refresh();
+
+            if ((float) $purchaseOrder->due_amount > 0) {
+                $this->notificationService->createPaymentReminder(
+                    'purchase-order-due-' . $purchaseOrder->id,
+                    'Supplier payment reminder',
+                    'Outstanding payment of ' . number_format((float) $purchaseOrder->due_amount, 2)
+                        . ' remains for ' . $purchaseOrder->po_number . '.',
+                    [
+                        'purchase_order_id' => $purchaseOrder->id,
+                        'po_number' => $purchaseOrder->po_number,
+                        'supplier_name' => $purchaseOrder->supplier?->name,
+                        'due_amount' => (float) $purchaseOrder->due_amount,
+                    ]
+                );
+            } else {
+                $this->notificationService->resolvePaymentReminder('purchase-order-due-' . $purchaseOrder->id);
+            }
+
+            $this->auditLogService->log(
+                'purchase_orders',
+                'payment_recorded',
+                'Supplier payment recorded for "' . $purchaseOrder->po_number . '".',
+                $purchaseOrder,
+                $oldValues,
+                [
+                    'paid_amount' => (float) $purchaseOrder->paid_amount,
+                    'due_amount' => (float) $purchaseOrder->due_amount,
+                ],
+                [
+                    'payment_id' => $payment->id,
+                    'payment_amount' => (float) $payment->amount,
+                    'payment_method' => $payment->method,
+                ]
+            );
 
             return $payment;
         });
@@ -177,11 +252,13 @@ class PurchaseOrderController extends Controller
         }
 
         DB::transaction(function () use ($purchaseOrder) {
-            $purchaseOrder->load('items');
+            $purchaseOrder->load('items', 'supplier');
+            $oldValues = ['status' => $purchaseOrder->status];
 
             foreach ($purchaseOrder->items as $item) {
                 $product = Product::whereKey($item->product_id)->lockForUpdate()->firstOrFail();
                 $stock = Stock::where('product_id', $item->product_id)->lockForUpdate()->first();
+                $previousQuantity = (int) ($stock?->quantity ?? $product->stock);
 
                 if (!$stock) {
                     $stock = Stock::create([
@@ -202,12 +279,44 @@ class PurchaseOrderController extends Controller
                     'note' => 'Stock received from purchase order',
                     'created_by' => auth()->id(),
                 ]);
+
+                $stock->refresh();
+                $product->refresh();
+
+                if ((int) $stock->quantity <= (int) $product->low_stock_threshold) {
+                    $this->notificationService->createLowStockAlert($product, (int) $stock->quantity);
+                } else {
+                    $this->notificationService->resolveLowStockAlert($product);
+                }
+
+                $this->auditLogService->log(
+                    'inventory',
+                    'purchase_order_received_stock',
+                    'Stock received for "' . $product->name . '" from purchase order "' . $purchaseOrder->po_number . '".',
+                    $product,
+                    ['stock' => $previousQuantity],
+                    ['stock' => (int) $stock->quantity],
+                    [
+                        'purchase_order_id' => $purchaseOrder->id,
+                        'purchase_order_number' => $purchaseOrder->po_number,
+                        'quantity_received' => (int) $item->quantity,
+                    ]
+                );
             }
 
             $purchaseOrder->update([
                 'status' => 'received',
                 'received_at' => now(),
             ]);
+
+            $this->auditLogService->log(
+                'purchase_orders',
+                'received',
+                'Purchase order "' . $purchaseOrder->po_number . '" marked as received.',
+                $purchaseOrder,
+                $oldValues,
+                ['status' => $purchaseOrder->status, 'received_at' => optional($purchaseOrder->received_at)->format('Y-m-d H:i:s')]
+            );
 
             $this->accountingService->recordPurchaseReceipt($purchaseOrder->fresh(['items']));
         });
@@ -235,7 +344,17 @@ class PurchaseOrderController extends Controller
             return back()->with('error', 'Only pending purchase orders can be cancelled.');
         }
 
+        $oldValues = ['status' => $purchaseOrder->status];
         $purchaseOrder->update(['status' => 'cancelled']);
+        $this->notificationService->resolvePaymentReminder('purchase-order-due-' . $purchaseOrder->id);
+        $this->auditLogService->log(
+            'purchase_orders',
+            'cancelled',
+            'Purchase order "' . $purchaseOrder->po_number . '" cancelled.',
+            $purchaseOrder,
+            $oldValues,
+            ['status' => $purchaseOrder->status]
+        );
 
         if ($request->ajax()) {
             return response()->json([

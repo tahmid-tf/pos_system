@@ -5,12 +5,20 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Stock;
 use App\Models\StockMovement;
+use App\Services\AuditLogService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
+    public function __construct(
+        protected NotificationService $notificationService,
+        protected AuditLogService $auditLogService
+    ) {
+    }
+
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -41,7 +49,7 @@ class ProductController extends Controller
             $data['image'] = $request->file('image')->store('products', 'public');
         }
 
-        DB::transaction(function () use ($data, $openingStock) {
+        $product = DB::transaction(function () use ($data, $openingStock) {
             $product = Product::create($data);
 
             Stock::create([
@@ -59,7 +67,22 @@ class ProductController extends Controller
                     'created_by' => auth()->id(),
                 ]);
             }
+
+            return $product;
         });
+
+        if ($openingStock <= (int) $product->low_stock_threshold) {
+            $this->notificationService->createLowStockAlert($product->fresh(), $openingStock);
+        }
+
+        $this->auditLogService->log(
+            'products',
+            'created',
+            'Product "' . $product->name . '" created.',
+            $product,
+            [],
+            $product->only(['name', 'sku', 'category_id', 'price', 'cost_price', 'stock', 'status', 'low_stock_threshold'])
+        );
 
         return response()->json(['success' => true, 'message' => 'Product Created']);
     }
@@ -97,6 +120,8 @@ class ProductController extends Controller
             $data['image'] = $request->file('image')->store('products', 'public');
         }
 
+        $oldValues = $product->only(['name', 'sku', 'category_id', 'price', 'cost_price', 'stock', 'status', 'low_stock_threshold']);
+
         DB::transaction(function () use ($product, $data, $newStock, $currentStock) {
             $product->update($data);
 
@@ -124,12 +149,30 @@ class ProductController extends Controller
             }
         });
 
+        $product->refresh();
+
+        if ($newStock <= (int) $product->low_stock_threshold) {
+            $this->notificationService->createLowStockAlert($product, $newStock);
+        } else {
+            $this->notificationService->resolveLowStockAlert($product);
+        }
+
+        $this->auditLogService->log(
+            'products',
+            'updated',
+            'Product "' . $product->name . '" updated.',
+            $product,
+            $oldValues,
+            $product->only(['name', 'sku', 'category_id', 'price', 'cost_price', 'stock', 'status', 'low_stock_threshold'])
+        );
+
         return response()->json(['success' => true, 'message' => 'Product Updated']);
     }
 
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
+        $oldValues = $product->only(['name', 'sku', 'category_id', 'price', 'cost_price', 'stock', 'status', 'low_stock_threshold']);
 
         // delete image
         if ($product->image && Storage::disk('public')->exists($product->image)) {
@@ -137,6 +180,15 @@ class ProductController extends Controller
         }
 
         $product->delete();
+        $this->notificationService->resolveLowStockAlert($product);
+        $this->auditLogService->log(
+            'products',
+            'deleted',
+            'Product "' . ($oldValues['name'] ?? 'Unknown') . '" deleted.',
+            null,
+            $oldValues,
+            []
+        );
 
         return response()->json(['success' => true, 'message' => 'Product Deleted']);
     }
