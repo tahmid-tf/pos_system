@@ -481,29 +481,39 @@
                 paymentIndex += 1;
 
                 const row = `
-                    <div class="border rounded p-2 mb-2 payment-row" data-index="${paymentIndex}">
+                    <div class="border rounded-3 p-3 mb-2 payment-row bg-light" data-index="${paymentIndex}">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <div class="fw-semibold">Payment ${paymentIndex}</div>
+                                <div class="small text-muted">Choose method, amount, and optional reference</div>
+                            </div>
+                            <button class="btn btn-outline-danger btn-sm remove-payment-row" type="button" aria-label="Remove payment">
+                                <i data-feather="trash-2"></i>
+                            </button>
+                        </div>
                         <div class="row g-2">
-                            <div class="col-4">
+                            <div class="col-12">
+                                <label class="form-label small text-muted mb-1">Method</label>
                                 <select class="form-control payment-method">
                                     <option value="cash" ${payment && payment.method === 'cash' ? 'selected' : ''}>Cash</option>
                                     <option value="card" ${payment && payment.method === 'card' ? 'selected' : ''}>Card</option>
                                     <option value="mobile" ${payment && payment.method === 'mobile' ? 'selected' : ''}>Mobile</option>
                                 </select>
                             </div>
-                            <div class="col-4">
-                                <input type="number" class="form-control payment-amount" min="0.01" step="0.01" value="${payment ? payment.amount : ''}" placeholder="Amount">
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted mb-1">Amount</label>
+                                <input type="number" class="form-control payment-amount" min="0.01" step="0.01" value="${payment ? payment.amount : ''}" placeholder="Enter amount">
                             </div>
-                            <div class="col-3">
-                                <input type="text" class="form-control payment-reference" value="${payment ? payment.reference || '' : ''}" placeholder="Ref">
-                            </div>
-                            <div class="col-1 d-grid">
-                                <button class="btn btn-outline-danger remove-payment-row" type="button">&times;</button>
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted mb-1">Reference</label>
+                                <input type="text" class="form-control payment-reference" value="${payment ? payment.reference || '' : ''}" placeholder="Reference no.">
                             </div>
                         </div>
                     </div>
                 `;
 
                 $('#paymentRows').append(row);
+                feather.replace();
             }
 
             function collectPayments() {

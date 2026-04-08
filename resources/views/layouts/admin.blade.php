@@ -35,16 +35,16 @@
         <a class="navbar-brand pe-3 ps-4 ps-lg-2" href="index.html">Dashboard</a>
         <!-- Navbar Search Input-->
         <!-- * * Note: * * Visible only on and above the lg breakpoint-->
-        <form class="form-inline me-auto d-none d-lg-block me-3">
+        {{-- <form class="form-inline me-auto d-none d-lg-block me-3">
             <div class="input-group input-group-joined input-group-solid">
                 <input class="form-control pe-0" type="search" placeholder="Search" aria-label="Search" />
                 <div class="input-group-text"><i data-feather="search"></i></div>
             </div>
-        </form>
+        </form> --}}
         <!-- Navbar Items-->
         <ul class="navbar-nav align-items-center ms-auto">
             <!-- Documentation Dropdown-->
-            <li class="nav-item dropdown no-caret d-none d-md-block me-3">
+            {{-- <li class="nav-item dropdown no-caret d-none d-md-block me-3">
                 <a class="nav-link dropdown-toggle" id="navbarDropdownDocs" href="javascript:void(0);" role="button"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <div class="fw-500">Documentation</div>
@@ -84,7 +84,7 @@
                         </div>
                     </a>
                 </div>
-            </li>
+            </li> --}}
             <!-- Navbar Search Dropdown-->
             <!-- * * Note: * * Visible only below the lg breakpoint-->
             <li class="nav-item dropdown no-caret me-3 d-lg-none">
@@ -106,7 +106,7 @@
                 </div>
             </li>
             <!-- Alerts Dropdown-->
-            <li class="nav-item dropdown no-caret d-none d-sm-block me-3 dropdown-notifications">
+            {{-- <li class="nav-item dropdown no-caret d-none d-sm-block me-3 dropdown-notifications">
                 <a class="btn btn-icon btn-transparent-dark dropdown-toggle" id="navbarDropdownAlerts"
                     href="javascript:void(0);" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
                     aria-expanded="false">
@@ -133,9 +133,9 @@
                         <a class="small" href="{{ route('notifications.index') }}">View all alerts</a>
                     </div>
                 </div>
-            </li>
+            </li> --}}
             <!-- Messages Dropdown-->
-            <li class="nav-item dropdown no-caret d-none d-sm-block me-3 dropdown-notifications">
+            {{-- <li class="nav-item dropdown no-caret d-none d-sm-block me-3 dropdown-notifications">
                 <a class="btn btn-icon btn-transparent-dark dropdown-toggle" id="navbarDropdownMessages"
                     href="javascript:void(0);" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
                     aria-expanded="false"><i data-feather="mail"></i></a>
@@ -228,7 +228,7 @@
                     <!-- Footer Link-->
                     <a class="dropdown-item dropdown-notifications-footer" href="#!">Read All Messages</a>
                 </div>
-            </li>
+            </li> --}}
             <!-- User Dropdown-->
             <li class="nav-item dropdown no-caret dropdown-user me-3 me-lg-4">
                 <a class="btn btn-icon btn-transparent-dark dropdown-toggle" id="navbarDropdownUserImage"
@@ -241,23 +241,26 @@
                         <img class="dropdown-user-img"
                             src="{{ asset('assets/img/illustrations/profiles/profile-1.png') }}" />
                         <div class="dropdown-user-details">
-                            <div class="dropdown-user-details-name">Valerie Luna</div>
-                            <div class="dropdown-user-details-email">vluna@aol.com</div>
+                            <div class="dropdown-user-details-name">{{ auth()->user()->name }}</div>
+                            <div class="dropdown-user-details-email">{{ auth()->user()->email }}</div>
                         </div>
                     </h6>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#!">
+                    <a class="dropdown-item" href="{{ route('profile.edit') }}">
                         <div class="dropdown-item-icon">
                             <i data-feather="settings"></i>
                         </div>
                         Account
                     </a>
-                    <a class="dropdown-item" href="#!">
-                        <div class="dropdown-item-icon">
-                            <i data-feather="log-out"></i>
-                        </div>
-                        Logout
-                    </a>
+                    <form method="POST" action="{{ route('logout') }}" id="logoutForm">
+                        @csrf
+                        <button class="dropdown-item" type="button" id="logoutButton">
+                            <div class="dropdown-item-icon">
+                                <i data-feather="log-out"></i>
+                            </div>
+                            Logout
+                        </button>
+                    </form>
                 </div>
             </li>
         </ul>
@@ -275,7 +278,7 @@
                 <div class="sidenav-footer">
                     <div class="sidenav-footer-content">
                         <div class="sidenav-footer-subtitle">Logged in as:</div>
-                        <div class="sidenav-footer-title">Valerie Luna</div>
+                        <div class="sidenav-footer-title">{{ auth()->user()->name }}</div>
                     </div>
                 </div>
             </nav>
@@ -288,7 +291,7 @@
                 <div class="container-xl px-4">
                     <div class="row">
                         <div class="col-md-6 small">
-                            Copyright &copy; Your Website 2021
+                            Copyright &copy; POS SYSTEM - 2026
                         </div>
                         <div class="col-md-6 text-md-end small">
                             <a href="#!">Privacy Policy</a>
@@ -377,7 +380,8 @@
                 });
 
                 $('#navbarNotificationItems').html(
-                    html || '<div class="dropdown-item text-center text-muted py-4">No notifications right now.</div>'
+                    html ||
+                    '<div class="dropdown-item text-center text-muted py-4">No notifications right now.</div>'
                 );
                 feather.replace();
             }
@@ -420,6 +424,22 @@
 
             loadNotifications();
             window.setInterval(loadNotifications, 60000);
+
+            $('#logoutButton').on('click', function() {
+                Swal.fire({
+                    title: 'Logout now?',
+                    text: 'Your current admin session will be closed.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, logout',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        $('#logoutForm').trigger('submit');
+                    }
+                });
+            });
         });
     </script>
     @yield('scripts')
