@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Promotion;
+use App\Models\PurchaseOrderItem;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\SalePayment;
 use App\Models\Stock;
 use App\Models\StockMovement;
+use App\Services\AccountingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -16,6 +18,10 @@ use Illuminate\Validation\Rule;
 
 class SalesController extends Controller
 {
+    public function __construct(protected AccountingService $accountingService)
+    {
+    }
+
     public function index()
     {
         $products = Product::query()
@@ -175,6 +181,7 @@ class SalesController extends Controller
                     'product' => $product,
                     'quantity' => $quantity,
                     'unit_price' => (float) $product->price,
+                    'unit_cost' => $this->resolveUnitCost($product->id),
                     'line_subtotal' => $lineSubtotal,
                 ];
             }
@@ -242,6 +249,7 @@ class SalesController extends Controller
                 $lineTaxable = max($lineItem['line_subtotal'] - $allocatedDiscount, 0);
                 $lineTax = round($lineTaxable * ($taxRate / 100), 2);
                 $lineTotal = round($lineTaxable + $lineTax, 2);
+                $lineCostTotal = round($lineItem['unit_cost'] * $lineItem['quantity'], 2);
 
                 SaleItem::create([
                     'sale_id' => $sale->id,
@@ -249,8 +257,10 @@ class SalesController extends Controller
                     'product_name' => $lineItem['product']->name,
                     'sku' => $lineItem['product']->sku,
                     'unit_price' => $lineItem['unit_price'],
+                    'unit_cost' => $lineItem['unit_cost'],
                     'quantity' => $lineItem['quantity'],
                     'line_subtotal' => $lineItem['line_subtotal'],
+                    'line_cost_total' => $lineCostTotal,
                     'line_discount' => $allocatedDiscount,
                     'tax_amount' => $lineTax,
                     'line_total' => $lineTotal,
@@ -306,7 +316,10 @@ class SalesController extends Controller
                 }
             }
 
-            return $sale->load(['customer', 'promotion', 'items', 'payments']);
+            $sale->load(['customer', 'promotion', 'items', 'payments']);
+            $this->accountingService->recordSale($sale);
+
+            return $sale;
         });
 
         return response()->json([
@@ -344,6 +357,19 @@ class SalesController extends Controller
     protected function nextInvoiceNumber(): string
     {
         return 'INV-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
+    }
+
+    protected function resolveUnitCost(int $productId): float
+    {
+        $latestPurchaseItem = PurchaseOrderItem::query()
+            ->select('purchase_order_items.unit_cost')
+            ->join('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_items.purchase_order_id')
+            ->where('purchase_order_items.product_id', $productId)
+            ->where('purchase_orders.status', 'received')
+            ->latest('purchase_orders.received_at')
+            ->first();
+
+        return round((float) ($latestPurchaseItem?->unit_cost ?? 0), 2);
     }
 
     protected function transformSale(Sale $sale): array

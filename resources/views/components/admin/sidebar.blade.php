@@ -41,3 +41,9 @@
     <div class="nav-link-icon"><i data-feather="file-text"></i></div>
     Purchase Orders
 </a>
+
+<div class="sidenav-menu-heading">Insights</div>
+<a class="nav-link" href="{{ route('reports.index') }}">
+    <div class="nav-link-icon"><i data-feather="bar-chart-2"></i></div>
+    Reports & Accounting
+</a>

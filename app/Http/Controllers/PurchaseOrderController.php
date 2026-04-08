@@ -8,6 +8,7 @@ use App\Models\Stock;
 use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Models\SupplierPayment;
+use App\Services\AccountingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -15,6 +16,10 @@ use Illuminate\Validation\Rule;
 
 class PurchaseOrderController extends Controller
 {
+    public function __construct(protected AccountingService $accountingService)
+    {
+    }
+
     public function index()
     {
         $purchaseOrders = PurchaseOrder::with(['supplier', 'items.product', 'payments'])
@@ -137,6 +142,9 @@ class PurchaseOrderController extends Controller
                 'due_amount' => round(max((float) $purchaseOrder->total_amount - $updatedPaidAmount, 0), 2),
             ]);
 
+            $payment->load('purchaseOrder');
+            $this->accountingService->recordSupplierPayment($payment);
+
             return $payment;
         });
 
@@ -200,6 +208,8 @@ class PurchaseOrderController extends Controller
                 'status' => 'received',
                 'received_at' => now(),
             ]);
+
+            $this->accountingService->recordPurchaseReceipt($purchaseOrder->fresh(['items']));
         });
 
         if ($request->ajax()) {

@@ -5,6 +5,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
@@ -71,6 +72,17 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/edit/{id}', [CategoryController::class, 'edit'])->name('categories.edit');
         Route::post('/update/{id}', [CategoryController::class, 'update'])->name('categories.update');
         Route::delete('/delete/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+    });
+
+    Route::prefix('reports')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('/data', [ReportController::class, 'data'])->name('reports.data');
+        Route::get('/export/excel', [ReportController::class, 'exportExcel'])->name('reports.export.excel');
+        Route::get('/accounting-snapshot', [ReportController::class, 'accountingSnapshot'])
+            ->name('reports.accountingSnapshot');
+        Route::post('/ledgers/store', [ReportController::class, 'storeLedger'])->name('reports.ledgers.store');
+        Route::post('/transactions/store', [ReportController::class, 'storeTransaction'])
+            ->name('reports.transactions.store');
     });
 
 });

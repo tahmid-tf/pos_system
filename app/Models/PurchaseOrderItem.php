@@ -11,6 +11,11 @@ class PurchaseOrderItem extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'unit_cost' => 'decimal:2',
+        'line_total' => 'decimal:2',
+    ];
+
     public function purchaseOrder()
     {
         return $this->belongsTo(PurchaseOrder::class);

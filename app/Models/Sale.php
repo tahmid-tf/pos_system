@@ -12,6 +12,12 @@ class Sale extends Model
 
     protected $casts = [
         'sold_at' => 'datetime',
+        'subtotal' => 'decimal:2',
+        'discount_total' => 'decimal:2',
+        'tax_total' => 'decimal:2',
+        'total' => 'decimal:2',
+        'paid_amount' => 'decimal:2',
+        'due_amount' => 'decimal:2',
         'meta' => 'array',
     ];
 
