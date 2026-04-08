@@ -22,7 +22,7 @@
     </header>
 
     <div class="container-xl px-4 mt-n10">
-        <div class="row" id="inventorySummary">
+        <div class="row gx-4 pt-2" id="inventorySummary">
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card border-start-lg border-start-primary h-100">
                     <div class="card-body">
@@ -55,9 +55,10 @@
                     </div>
                 </div>
             </div>
+
         </div>
 
-        <div class="card mb-4">
+        <div class="card mb-4 mt-2">
             <div class="card-header">Stock Overview</div>
             <div class="card-body" id="stockLevelsTableWrapper">
                 <table class="table table-bordered align-middle mb-0" id="stockLevelsTable">
@@ -113,36 +114,36 @@
                         </thead>
                         <tbody>
                             ${products.map((product) => `
-                                <tr>
-                                    <td>${product.name}</td>
-                                    <td>${product.sku}</td>
-                                    <td>${product.current_stock}</td>
-                                    <td>
-                                        <div class="d-flex gap-2">
-                                            <input type="number"
-                                                class="form-control form-control-sm thresholdInput"
-                                                value="${product.low_stock_threshold}"
-                                                min="0"
-                                                data-id="${product.id}"
-                                                style="max-width:120px;">
-                                            <button class="btn btn-sm btn-primary saveThresholdBtn"
-                                                data-id="${product.id}"
-                                                type="button">Save</button>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        ${Number(product.current_stock) <= Number(product.low_stock_threshold)
-                                            ? '<span class="badge bg-warning text-dark">Low</span>'
-                                            : '<span class="badge bg-success">Healthy</span>'}
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm ${product.inventory_locked ? 'btn-danger' : 'btn-outline-danger'} toggleLockBtn"
-                                            data-id="${product.id}" type="button">
-                                            ${product.inventory_locked ? 'Locked' : 'Unlocked'}
-                                        </button>
-                                    </td>
-                                </tr>
-                            `).join('')}
+                                                <tr>
+                                                    <td>${product.name}</td>
+                                                    <td>${product.sku}</td>
+                                                    <td>${product.current_stock}</td>
+                                                    <td>
+                                                        <div class="d-flex gap-2">
+                                                            <input type="number"
+                                                                class="form-control form-control-sm thresholdInput"
+                                                                value="${product.low_stock_threshold}"
+                                                                min="0"
+                                                                data-id="${product.id}"
+                                                                style="max-width:120px;">
+                                                            <button class="btn btn-sm btn-primary saveThresholdBtn"
+                                                                data-id="${product.id}"
+                                                                type="button">Save</button>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        ${Number(product.current_stock) <= Number(product.low_stock_threshold)
+                                                            ? '<span class="badge bg-warning text-dark">Low</span>'
+                                                            : '<span class="badge bg-success">Healthy</span>'}
+                                                    </td>
+                                                    <td>
+                                                        <button class="btn btn-sm ${product.inventory_locked ? 'btn-danger' : 'btn-outline-danger'} toggleLockBtn"
+                                                            data-id="${product.id}" type="button">
+                                                            ${product.inventory_locked ? 'Locked' : 'Unlocked'}
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            `).join('')}
                         </tbody>
                     </table>
                 `;
@@ -175,14 +176,15 @@
 
                 if (toggleLockButton) {
                     try {
-                        const response = await fetch(`${routes.toggleLock}/${toggleLockButton.dataset.id}/toggle-lock`, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': csrfToken,
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'Accept': 'application/json'
-                            }
-                        });
+                        const response = await fetch(
+                            `${routes.toggleLock}/${toggleLockButton.dataset.id}/toggle-lock`, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json'
+                                }
+                            });
 
                         if (!response.ok) {
                             throw new Error('Failed to update inventory lock');
@@ -197,20 +199,22 @@
                 }
 
                 if (saveThresholdButton) {
-                    const input = stockLevelsTableWrapper.querySelector(`.thresholdInput[data-id="${saveThresholdButton.dataset.id}"]`);
+                    const input = stockLevelsTableWrapper.querySelector(
+                        `.thresholdInput[data-id="${saveThresholdButton.dataset.id}"]`);
                     const formData = new FormData();
                     formData.append('low_stock_threshold', input.value);
 
                     try {
-                        const response = await fetch(`${routes.threshold}/${saveThresholdButton.dataset.id}/threshold`, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': csrfToken,
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'Accept': 'application/json'
-                            },
-                            body: formData
-                        });
+                        const response = await fetch(
+                            `${routes.threshold}/${saveThresholdButton.dataset.id}/threshold`, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json'
+                                },
+                                body: formData
+                            });
 
                         if (!response.ok) {
                             throw new Error('Failed to update threshold');
